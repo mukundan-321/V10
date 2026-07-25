@@ -71,18 +71,28 @@ class PairingRepositoryImpl implements PairingRepository {
     required this.baseWsUrl,
   });
 
-  @override
-Future<bool> get isPaired async {
-  print("STEP 3: isPaired started");
+    @override
+  Future<bool> get isPaired async {
+    print("========== STEP 3 ==========");
+    print("PairingRepository.isPaired() called");
 
-  final peerKey = await (db.select(db.keyRecords)
-        ..where((t) => t.keyType.equals(_peerIdentityKeyType)))
-      .getSingleOrNull();
+    try {
+      final peerKey = await (db.select(db.keyRecords)
+            ..where((t) => t.keyType.equals(_peerIdentityKeyType)))
+          .getSingleOrNull();
 
-  print("STEP 4: Database query finished");
+      print("========== STEP 4 ==========");
+      print("Database query completed");
+      print("peerKey = $peerKey");
 
-  return peerKey != null;
-}
+      return peerKey != null;
+    } catch (e, stackTrace) {
+      print("========== DATABASE ERROR ==========");
+      print(e);
+      print(stackTrace);
+      rethrow;
+    }
+  }
 
   @override
   Future<DeviceIdentity> get localIdentity async {
