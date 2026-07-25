@@ -52,9 +52,6 @@ Future<void> main() async {
     ),
   );
 }
-  runApp(ProviderScope(child: TwoPersonApp(startupError: startupError)));
-}
-
 class TwoPersonApp extends StatefulWidget {
   final String? startupError;
   const TwoPersonApp({super.key, this.startupError});
