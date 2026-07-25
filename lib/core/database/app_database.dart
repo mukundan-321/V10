@@ -37,9 +37,9 @@ class AppDatabase extends _$AppDatabase {
       final dir = await getApplicationSupportDirectory();
       final file = File(p.join(dir.path, 'shared_space.sqlite'));
 
-      return NativeDatabase.createInBackground(
-        file,
-        setup: (rawDb) {
+      return NativeDatabase(
+  file,
+  setup: (rawDb) {
           final escaped = passphrase.replaceAll("'", "''");
           rawDb.execute("PRAGMA key = '$escaped';");
 
