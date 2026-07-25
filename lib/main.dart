@@ -14,15 +14,42 @@ import 'package:sqlcipher_flutter_libs/sqlcipher_flutter_libs.dart';
 final navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
-  
-WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
 
-if (Platform.isAndroid) {
-  await applyWorkaroundToOpenSqlCipherOnOldAndroidVersions();
+  // MUST happen before Drift/database initialization.
+  if (Platform.isAndroid) {
+    await applyWorkaroundToOpenSqlCipherOnOldAndroidVersions();
 
-  open.overrideFor(
-    OperatingSystem.android,
-    openCipherOnAndroid,
+    open.overrideFor(
+      OperatingSystem.android,
+      openCipherOnAndroid,
+    );
+  }
+
+  String? startupError;
+
+  try {
+    print("========== STEP 1 ==========");
+    print("Starting configureDependencies");
+
+    await configureDependencies(
+      dbPassphrase: 'REPLACE_WITH_DERIVED_KEY',
+    );
+
+    print("========== STEP 2 ==========");
+    print("configureDependencies finished");
+  } catch (e, stackTrace) {
+    print("========== STARTUP ERROR ==========");
+    print(e);
+    print(stackTrace);
+
+    startupError = e.toString();
+  }
+
+  runApp(
+    ProviderScope(
+      child: TwoPersonApp(startupError: startupError),
+    ),
   );
 }
 
