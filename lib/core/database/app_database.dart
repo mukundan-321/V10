@@ -6,7 +6,6 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlcipher_flutter_libs/sqlcipher_flutter_libs.dart';
 
-
 import 'tables/messages_table.dart';
 import 'tables/reactions_table.dart';
 import 'tables/keys_settings_tables.dart';
@@ -42,23 +41,9 @@ class AppDatabase extends _$AppDatabase {
       return NativeDatabase.createInBackground(
         file,
         setup: (rawDb) {
-          // Escape embedded single quotes (SQL string-literal escaping)
-          // rather than interpolating the passphrase directly — this
-          // was a real injection-shaped bug: a passphrase containing a
-          // `'` would have broken the statement, and there is nothing
-          // structurally preventing that once the passphrase comes
-          // from a real key-derivation function instead of a fixed
-          // placeholder string.
           final escaped = passphrase.replaceAll("'", "''");
           rawDb.execute("PRAGMA key = '$escaped';");
 
-          // Actually verify SQLCipher is engaged, not just run the
-          // pragma and ignore the result: `execute()` discards
-          // returned rows, so a previous version of this check ran
-          // `PRAGMA cipher_version;` but never inspected the result —
-          // if SQLCipher wasn't actually linked, that pragma silently
-          // no-ops instead of throwing, and this code would have gone
-          // on to treat an unencrypted database as if it were secure.
           final result = rawDb.select('PRAGMA cipher_version;');
           if (result.isEmpty) {
             throw StateError(
@@ -73,6 +58,6 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// In-memory DB for unit tests — no encryption needed for test speed.
-  static AppDatabase forTesting() =>
+  static AppDatabase.forTesting() =>
       AppDatabase(NativeDatabase.memory());
 }
