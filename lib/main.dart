@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -125,29 +126,48 @@ class _StartupErrorScreen extends StatelessWidget {
 /// trust) and "connected right now" (this session's live link) are
 /// different things; [PairingFlowScreen] handles both, just with a
 /// lighter-weight path when [isPaired] is already true.
-class _RootGate extends StatefulWidget {
-  const _RootGate();
-
-  @override
-  State<_RootGate> createState() => _RootGateState();
-}
-
 class _RootGateState extends State<_RootGate> {
-  // Cached rather than called directly inside build(): a FutureBuilder
-  // whose `future:` is created fresh on every build re-triggers the
-  // loading state (and re-queries the database) on any unrelated
-  // rebuild of this widget.
-  late final Future<bool> _isPairedFuture = sl<PairingRepository>().isPaired;
+  late final Future<bool> _isPairedFuture = sl<PairingRepository>()
+      .isPaired
+      .timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw TimeoutException(
+            'Startup timed out after 10 seconds.',
+          );
+        },
+      );
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
       future: _isPairedFuture,
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  snapshot.error.toString(),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          );
         }
-        return PairingFlowScreen(isReconnect: snapshot.data!);
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        return PairingFlowScreen(
+          isReconnect: snapshot.data ?? false,
+        );
       },
     );
   }
