@@ -10,6 +10,7 @@ environment:
   flutter: '>=3.19.0'
 
 dependencies:
+  sqlite3: ^2.9.3
   flutter:
     sdk: flutter
 
