@@ -14,11 +14,23 @@ workflows:
         script: |
           dart run build_runner build --delete-conflicting-outputs
 
-      - name: Analyze project
+      - name: Get signaling server packages
         script: |
-          flutter analyze
+          cd signaling_server
+          dart pub get
+          cd ..
 
-      - name: Run tests
+      - name: Analyze Flutter app
+        script: |
+          flutter analyze lib test
+
+      - name: Analyze signaling server
+        script: |
+          cd signaling_server
+          dart analyze
+          cd ..
+
+      - name: Run Flutter tests
         script: |
           flutter test
 
