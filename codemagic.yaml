@@ -21,8 +21,8 @@ workflows:
           cd ..
 
       - name: Analyze Flutter app
-  script: |
-    flutter analyze lib test || true
+        script: |
+          flutter analyze lib test || true
 
       - name: Analyze signaling server
         script: |
