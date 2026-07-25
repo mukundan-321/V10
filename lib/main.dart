@@ -12,17 +12,32 @@ final navigatorKey = GlobalKey<NavigatorState>();
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // TODO(crypto-module-v2): replace with a passphrase derived from a
-  // biometric/PIN-gated secure-enclave master key. Using a fixed
-  // placeholder here so the rest of the app is runnable in isolation --
-  // this must not ship as-is, since it means the DB encryption key is
-  // effectively public.
   String? startupError;
+
   try {
-    await configureDependencies(dbPassphrase: 'REPLACE_WITH_DERIVED_KEY');
-  } catch (e) {
+    print("========== STEP 1 ==========");
+    print("Starting configureDependencies");
+
+    await configureDependencies(
+      dbPassphrase: 'REPLACE_WITH_DERIVED_KEY',
+    );
+
+    print("========== STEP 2 ==========");
+    print("configureDependencies finished");
+  } catch (e, stackTrace) {
+    print("========== STARTUP ERROR ==========");
+    print(e);
+    print(stackTrace);
+
     startupError = e.toString();
   }
+
+  runApp(
+    ProviderScope(
+      child: TwoPersonApp(startupError: startupError),
+    ),
+  );
+}
 
   runApp(ProviderScope(child: TwoPersonApp(startupError: startupError)));
 }
