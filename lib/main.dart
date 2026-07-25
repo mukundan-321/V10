@@ -126,6 +126,12 @@ class _StartupErrorScreen extends StatelessWidget {
 /// trust) and "connected right now" (this session's live link) are
 /// different things; [PairingFlowScreen] handles both, just with a
 /// lighter-weight path when [isPaired] is already true.
+class _RootGate extends StatefulWidget {
+  const _RootGate({super.key});
+
+  @override
+  State<_RootGate> createState() => _RootGateState();
+}
 class _RootGateState extends State<_RootGate> {
   late final Future<bool> _isPairedFuture = sl<PairingRepository>()
       .isPaired
