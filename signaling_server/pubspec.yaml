@@ -1,0 +1,21 @@
+name: signaling_server
+description: >
+  Reference signaling relay for two_person_app pairing. Generates
+  short-lived invite IDs, matches exactly two WebSocket connections per
+  invite, and relays opaque signed messages between them. Never sees
+  chat content or private keys — see PAIRING_MIGRATION.md for the
+  full trust model this server operates under.
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dev_dependencies:
+  test: ^1.25.0
+
+# Deliberately zero *runtime* dependencies beyond the Dart SDK itself (dart:io's
+# HttpServer + WebSocketTransformer cover everything this needs) --
+# this keeps the reference implementation runnable with nothing but
+# `dart run bin/server.dart`, no `dart pub get` against a framework
+# required first.
