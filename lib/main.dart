@@ -46,13 +46,12 @@ Future<void> main() async {
     startupError = e.toString();
   }
 
-  runApp(
+    runApp(
     ProviderScope(
       child: TwoPersonApp(startupError: startupError),
     ),
   );
 }
-
   runApp(ProviderScope(child: TwoPersonApp(startupError: startupError)));
 }
 
