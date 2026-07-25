@@ -18,7 +18,10 @@ import 'package:signaling_server/invite_store.dart';
 /// relay message or the `data_channel_open` completion signal. See
 /// PAIRING_MIGRATION.md for the full trust model.
 Future<void> main(List<String> args) async {
-  final port = args.isNotEmpty ? int.tryParse(args[0]) ?? 8080 : 8080;
+  final port = int.tryParse(
+      Platform.environment['PORT'] ?? '',
+    ) ??
+    (args.isNotEmpty ? int.tryParse(args[0]) ?? 8080 : 8080);
   final store = InviteStore()..startExpirySweep();
 
   final server = await HttpServer.bind(InternetAddress.anyIPv4, port);
