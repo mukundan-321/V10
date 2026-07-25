@@ -7,6 +7,9 @@ import 'package:two_person_app/core/theme/app_theme.dart';
 import 'package:two_person_app/features/pairing/domain/repositories/pairing_repository.dart';
 import 'package:two_person_app/features/pairing/presentation/deep_link_handler.dart';
 import 'package:two_person_app/features/pairing/presentation/screens/pairing_flow_screen.dart';
+import 'dart:io';
+import 'package:sqlite3/open.dart';
+import 'package:sqlcipher_flutter_libs/sqlcipher_flutter_libs.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -32,6 +35,16 @@ Future<void> main() async {
 
     startupError = e.toString();
   }
+WidgetsFlutterBinding.ensureInitialized();
+
+if (Platform.isAndroid) {
+  await applyWorkaroundToOpenSqlCipherOnOldAndroidVersions();
+
+  open.overrideFor(
+    OperatingSystem.android,
+    openCipherOnAndroid,
+  );
+}
 
   runApp(ProviderScope(child: TwoPersonApp(startupError: startupError)));
 }
