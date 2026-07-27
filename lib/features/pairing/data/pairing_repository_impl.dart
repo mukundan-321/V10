@@ -393,8 +393,9 @@ print("Ephemeral Key Received");
     _transport = EncryptedTransport(_connectionManager)
       ..attachSessionCipher(SessionCipher(sessionKeys));
   }
-print("SDP Offer Received");
+
   Future<void> _onSdpOfferReceived(SdpOfferMessage message) async {
+print("SDP Offer Received");
     final peerSigningKey = _peerSigningKeyBase64;
     if (peerSigningKey == null || _isInitiator != false) return;
     final valid = await MessageSigning.verify(
@@ -429,8 +430,9 @@ print("SDP Offer Received");
 
     await _connectionManager.applyAnswer(message.sdp);
   }
-print("ICE Candidate Received");
+
   Future<void> _onIceCandidateReceived(IceCandidateMessage message) async {
+print("ICE Candidate Received");
     final peerSigningKey = _peerSigningKeyBase64;
     if (peerSigningKey == null) return;
     final valid = await MessageSigning.verify(
