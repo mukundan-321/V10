@@ -219,27 +219,32 @@ class PairingRepositoryImpl implements PairingRepository {
   }
 
   void _bindLocalIceCandidates() {
-    _localCandidateSub = _connectionManager.localIceCandidates.listen((candidate) async {
-      final identity = await identityKeyService.getOrCreateIdentity();
-      final message = IceCandidateMessage(
-        candidate: candidate.candidate ?? '',
-        sdpMid: candidate.sdpMid,
-        sdpMLineIndex: candidate.sdpMLineIndex,
-        signatureBase64: '',
-      );
-      final signed = IceCandidateMessage(
-  candidate: message.candidate,
-  sdpMid: message.sdpMid,
-  sdpMLineIndex: message.sdpMLineIndex,
-  signatureBase64: await MessageSigning.sign(
-    message.signedBytes,
-    identity.signingKeyPair,
-  ),
-);
+  _localCandidateSub =
+      _connectionManager.localIceCandidates.listen((candidate) async {
+    final identity = await identityKeyService.getOrCreateIdentity();
 
-print("Local ICE Candidate Generated");
+    final message = IceCandidateMessage(
+      candidate: candidate.candidate ?? '',
+      sdpMid: candidate.sdpMid,
+      sdpMLineIndex: candidate.sdpMLineIndex,
+      signatureBase64: '',
+    );
 
-_signalingClient?.send(signed);
+    final signed = IceCandidateMessage(
+      candidate: message.candidate,
+      sdpMid: message.sdpMid,
+      sdpMLineIndex: message.sdpMLineIndex,
+      signatureBase64: await MessageSigning.sign(
+        message.signedBytes,
+        identity.signingKeyPair,
+      ),
+    );
+
+    print("Local ICE Candidate Generated");
+
+    _signalingClient?.send(signed);
+  });
+}
 
   void _bindConnectionState() {
     _connectionStateSub =
