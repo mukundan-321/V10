@@ -238,7 +238,10 @@ class PairingRepositoryImpl implements PairingRepository {
   }
 
   void _bindConnectionState() {
-    _connectionStateSub = _connectionManager.connectionState.listen((state) async {
+    _connectionStateSub =
+    _connectionManager.connectionState.listen((state) async {
+
+  print("WebRTC State: $state");
       if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
         _stageController.add(PairingStage.connected);
         if (!_dataChannelOpenSent) {
@@ -252,6 +255,8 @@ class PairingRepositoryImpl implements PairingRepository {
   }
 
   Future<void> _handleSignalingMessage(SignalingMessage message) async {
+print("Received: $
+{message.runtimeType}");
   try {
     switch (message) {
       case PeerJoinedMessage():
@@ -291,6 +296,7 @@ class PairingRepositoryImpl implements PairingRepository {
     _stageController.add(PairingStage.failed);
   }
 }
+print("Peer Joined");
   Future<void> _onPeerJoined() async {
     _stageController.add(PairingStage.negotiating);
     final identity = await identityKeyService.getOrCreateIdentity();
@@ -333,7 +339,7 @@ class PairingRepositoryImpl implements PairingRepository {
       _signalingClient?.send(signedOfferMsg);
     }
   }
-
+print("Identity Received");
   Future<void> _onIdentityReceived(IdentityMessage message) async {
     final valid = await MessageSigning.verify(
       message.signedBytes,
@@ -357,7 +363,7 @@ class PairingRepositoryImpl implements PairingRepository {
       fingerprint: fingerprint,
     );
   }
-
+print("Ephemeral Key Received");
   Future<void> _onEphemeralKeyReceived(EphemeralKeyMessage message) async {
     final peerSigningKey = _peerSigningKeyBase64;
     if (peerSigningKey == null) return; // identity must arrive first
@@ -385,7 +391,7 @@ class PairingRepositoryImpl implements PairingRepository {
     _transport = EncryptedTransport(_connectionManager)
       ..attachSessionCipher(SessionCipher(sessionKeys));
   }
-
+print("SDP Offer Received");
   Future<void> _onSdpOfferReceived(SdpOfferMessage message) async {
     final peerSigningKey = _peerSigningKeyBase64;
     if (peerSigningKey == null || _isInitiator != false) return;
@@ -421,7 +427,7 @@ class PairingRepositoryImpl implements PairingRepository {
 
     await _connectionManager.applyAnswer(message.sdp);
   }
-
+print("ICE Candidate Received");
   Future<void> _onIceCandidateReceived(IceCandidateMessage message) async {
     final peerSigningKey = _peerSigningKeyBase64;
     if (peerSigningKey == null) return;
