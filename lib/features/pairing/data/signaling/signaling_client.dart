@@ -45,25 +45,30 @@ class SignalingClient {
     _channel = channel;
 
     _rawSubscription = channel.stream.listen(
-      (data) {
-  print("RAW WS: $data");
+  (data) {
+    print("RAW WS: $data");
 
-  final message = SignalingMessage.tryParse(data as String);
+    final message = SignalingMessage.tryParse(data as String);
 
-  print("PARSED: $message");
+    print("PARSED: $message");
 
-  if (message != null) {
-    _incomingController.add(message);
-  } else {
-    print("FAILED TO PARSE MESSAGE");
-  }
-},
-      onError: (_) {
-        _channel = null;
-        _connectionClosedController.add(null);
-      },
-    );
-  }
+    if (message != null) {
+      _incomingController.add(message);
+    } else {
+      print("FAILED TO PARSE MESSAGE");
+    }
+  },
+  onDone: () {
+    print("WebSocket CLOSED");
+    _channel = null;
+    _connectionClosedController.add(null);
+  },
+  onError: (error) {
+    print("WebSocket ERROR: $error");
+    _channel = null;
+    _connectionClosedController.add(null);
+  },
+);
 
   void send(SignalingMessage message) {
   print("SEND: ${message.toJson()}");
