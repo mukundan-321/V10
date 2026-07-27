@@ -233,6 +233,13 @@ class PairingRepositoryImpl implements PairingRepository {
         sdpMLineIndex: message.sdpMLineIndex,
         signatureBase64: await MessageSigning.sign(message.signedBytes, identity.signingKeyPair),
       );
+final signed = IceCandidateMessage(
+  ...
+);
+
+print("Local ICE Candidate Generated");
+
+_signalingClient?.send(signed);
       _signalingClient?.send(signed);
     });
   }
@@ -255,8 +262,7 @@ class PairingRepositoryImpl implements PairingRepository {
   }
 
   Future<void> _handleSignalingMessage(SignalingMessage message) async {
-print("Received: $
-{message.runtimeType}");
+print("Received: ${message.runtimeType}");
   try {
     switch (message) {
       case PeerJoinedMessage():
