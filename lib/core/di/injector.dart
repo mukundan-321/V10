@@ -13,34 +13,33 @@ import 'package:two_person_app/features/pairing/data/signaling/invite_api_client
 
 final GetIt sl = GetIt.instance;
 
-/// Points the client at your deployed signaling relay (see
-/// signaling_server/ and docs/PAIRING_MIGRATION.md). These placeholder
-/// values work with the reference server run locally
-/// (`dart run bin/server.dart 8080`) on the SAME device/emulator as
-/// the Flutter app -- update both before running against a real
-/// deployment, and switch to https/wss once that deployment has TLS
-/// (see signaling_server/README.md's "deploying this for real").
-const String _signalingHttpBaseUrl = 'http://localhost:8080';
-const String _signalingWsBaseUrl = 'ws://localhost:8080';
+/// Your deployed Render signaling server.
+const String _signalingHttpBaseUrl = 'https://v10-12.onrender.com';
+const String _signalingWsBaseUrl = 'wss://v10-12.onrender.com';
 
 /// Called once from main() after the device passphrase has been
-/// unlocked. Kept as plain manual registration rather than
-/// `injectable` codegen: this is a small, fixed set of repositories,
-/// and readability here matters more than saving a few lines.
+/// unlocked.
 Future<void> configureDependencies({required String dbPassphrase}) async {
   // Core
-  sl.registerLazySingleton<AppDatabase>(() => AppDatabase.open(dbPassphrase));
+  sl.registerLazySingleton<AppDatabase>(
+    () => AppDatabase.open(dbPassphrase),
+  );
 
-  // Feature: pairing (identity, key exchange, signaling relay, live connection)
+  // Pairing
   sl.registerLazySingleton<SecureKeyValueStore>(
     () => DeviceSecureKeyValueStore(),
   );
+
   sl.registerLazySingleton<IdentityKeyService>(
     () => IdentityKeyService(sl()),
   );
+
   sl.registerLazySingleton<InviteApiClient>(
-    () => InviteApiClient(baseHttpUrl: _signalingHttpBaseUrl),
+    () => InviteApiClient(
+      baseHttpUrl: _signalingHttpBaseUrl,
+    ),
   );
+
   sl.registerLazySingleton<PairingRepository>(
     () => PairingRepositoryImpl(
       db: sl(),
@@ -50,18 +49,20 @@ Future<void> configureDependencies({required String dbPassphrase}) async {
     ),
   );
 
-  // Feature: chat -- depends on pairing for live message delivery.
-  // Unchanged by the pairing architecture migration: chat only ever
-  // depended on PairingRepository's interface (transport,
-  // connectionStatus), never on how pairing itself works underneath.
+  // Chat
   sl.registerLazySingleton<ChatRepository>(
-    () => ChatRepositoryImpl(db: sl(), pairingRepository: sl()),
+    () => ChatRepositoryImpl(
+      db: sl(),
+      pairingRepository: sl(),
+    ),
   );
 }
 
-/// Call from test setUp() to point the locator at an in-memory DB and
-/// fakes instead of real implementations.
+/// Configure dependencies for unit tests.
 Future<void> configureDependenciesForTesting() async {
-  sl.reset();
-  sl.registerLazySingleton<AppDatabase>(() => AppDatabase.forTesting());
+  await sl.reset();
+
+  sl.registerLazySingleton<AppDatabase>(
+    () => AppDatabase.forTesting(),
+  );
 }
