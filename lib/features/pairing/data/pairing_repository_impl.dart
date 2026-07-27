@@ -296,9 +296,9 @@ print("Received: $
     _stageController.add(PairingStage.failed);
   }
 }
-print("Peer Joined");
+
   Future<void> _onPeerJoined() async {
-    _stageController.add(PairingStage.negotiating);
+   print("Peer Joined"); _stageController.add(PairingStage.negotiating);
     final identity = await identityKeyService.getOrCreateIdentity();
 
     final identityMsg = IdentityMessage(
@@ -339,8 +339,9 @@ print("Peer Joined");
       _signalingClient?.send(signedOfferMsg);
     }
   }
-print("Identity Received");
+
   Future<void> _onIdentityReceived(IdentityMessage message) async {
+print("Identity Received");
     final valid = await MessageSigning.verify(
       message.signedBytes,
       signatureBase64: message.signatureBase64,
@@ -363,8 +364,9 @@ print("Identity Received");
       fingerprint: fingerprint,
     );
   }
-print("Ephemeral Key Received");
+
   Future<void> _onEphemeralKeyReceived(EphemeralKeyMessage message) async {
+print("Ephemeral Key Received");
     final peerSigningKey = _peerSigningKeyBase64;
     if (peerSigningKey == null) return; // identity must arrive first
     final valid = await MessageSigning.verify(
