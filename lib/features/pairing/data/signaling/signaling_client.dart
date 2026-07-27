@@ -69,6 +69,7 @@ class SignalingClient {
     _connectionClosedController.add(null);
   },
 );
+}
 
   void send(SignalingMessage message) {
   print("SEND: ${message.toJson()}");
