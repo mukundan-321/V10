@@ -46,13 +46,18 @@ class SignalingClient {
 
     _rawSubscription = channel.stream.listen(
       (data) {
-        final message = SignalingMessage.tryParse(data as String);
-        if (message != null) _incomingController.add(message);
-      },
-      onDone: () {
-        _channel = null;
-        _connectionClosedController.add(null);
-      },
+  print("RAW WS: $data");
+
+  final message = SignalingMessage.tryParse(data as String);
+
+  print("PARSED: $message");
+
+  if (message != null) {
+    _incomingController.add(message);
+  } else {
+    print("FAILED TO PARSE MESSAGE");
+  }
+},
       onError: (_) {
         _channel = null;
         _connectionClosedController.add(null);
@@ -61,8 +66,9 @@ class SignalingClient {
   }
 
   void send(SignalingMessage message) {
-    _channel?.sink.add(message.toJson());
-  }
+  print("SEND: ${message.toJson()}");
+  _channel?.sink.add(message.toJson());
+}
 
   Future<void> close() async {
     await _rawSubscription?.cancel();
