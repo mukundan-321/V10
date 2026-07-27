@@ -1,7 +1,0 @@
-services:
-  - type: web
-    name: signaling-server
-    runtime: docker
-    rootDir: signaling_server
-    dockerfilePath: Dockerfile
-    dockerContext: .
