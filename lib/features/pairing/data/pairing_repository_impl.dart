@@ -252,35 +252,45 @@ class PairingRepositoryImpl implements PairingRepository {
   }
 
   Future<void> _handleSignalingMessage(SignalingMessage message) async {
-    try {
-      switch (message) {
-        case PeerJoinedMessage():
-          await _onPeerJoined();
-        case PeerLeftMessage():
-          _stageController.add(PairingStage.peerLeft);
-        case InviteExpiredMessage():
-          _stageController.add(PairingStage.expired);
-        case IdentityMessage():
-          await _onIdentityReceived(message);
-        case EphemeralKeyMessage():
-          await _onEphemeralKeyReceived(message);
-        case SdpOfferMessage():
-          await _onSdpOfferReceived(message);
-        case SdpAnswerMessage():
-          await _onSdpAnswerReceived(message);
-        case IceCandidateMessage():
-          await _onIceCandidateReceived(message);
-        case DataChannelOpenMessage():
-          break; // informational only on the receiving side
-      }
-    } catch (_) {
-      // Malformed/unverifiable signaling message -- drop it rather
-      // than crash a pairing attempt in progress. A legitimate peer
-      // will keep sending what's needed; a bad actor's tampering
-      // simply doesn't get applied.
-    }
-  }
+  try {
+    switch (message) {
+      case PeerJoinedMessage():
+        await _onPeerJoined();
 
+      case PeerLeftMessage():
+        _stageController.add(PairingStage.peerLeft);
+
+      case InviteExpiredMessage():
+        _stageController.add(PairingStage.expired);
+
+      case IdentityMessage():
+        await _onIdentityReceived(message);
+
+      case EphemeralKeyMessage():
+        await _onEphemeralKeyReceived(message);
+
+      case SdpOfferMessage():
+        await _onSdpOfferReceived(message);
+
+      case SdpAnswerMessage():
+        await _onSdpAnswerReceived(message);
+
+      case IceCandidateMessage():
+        await _onIceCandidateReceived(message);
+
+      case DataChannelOpenMessage():
+        break;
+    }
+  } catch (e, stack) {
+    print("================================");
+    print("SIGNALING ERROR");
+    print(e);
+    print(stack);
+    print("================================");
+
+    _stageController.add(PairingStage.failed);
+  }
+}
   Future<void> _onPeerJoined() async {
     _stageController.add(PairingStage.negotiating);
     final identity = await identityKeyService.getOrCreateIdentity();
