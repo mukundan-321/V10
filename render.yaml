@@ -3,3 +3,4 @@ services:
     name: signaling-server
     runtime: docker
     rootDir: signaling_server
+    dockerfilePath: ./Dockerfile
