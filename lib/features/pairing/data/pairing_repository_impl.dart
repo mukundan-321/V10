@@ -228,21 +228,18 @@ class PairingRepositoryImpl implements PairingRepository {
         signatureBase64: '',
       );
       final signed = IceCandidateMessage(
-        candidate: message.candidate,
-        sdpMid: message.sdpMid,
-        sdpMLineIndex: message.sdpMLineIndex,
-        signatureBase64: await MessageSigning.sign(message.signedBytes, identity.signingKeyPair),
-      );
-final signed = IceCandidateMessage(
-  ...
+  candidate: message.candidate,
+  sdpMid: message.sdpMid,
+  sdpMLineIndex: message.sdpMLineIndex,
+  signatureBase64: await MessageSigning.sign(
+    message.signedBytes,
+    identity.signingKeyPair,
+  ),
 );
 
 print("Local ICE Candidate Generated");
 
 _signalingClient?.send(signed);
-      _signalingClient?.send(signed);
-    });
-  }
 
   void _bindConnectionState() {
     _connectionStateSub =
