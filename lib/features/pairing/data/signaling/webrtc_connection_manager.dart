@@ -101,13 +101,19 @@ print("Local Answer Applied");
 
   /// Offer side, after receiving the answer over the relay.
   Future<void> applyAnswer(String answerSdp) async {
-    final pc = _pc;
-    if (pc == null) {
-      throw StateError('applyAnswer called before createOffer.');
-    }
-
-    await pc.setRemoteDescription(RTCSessionDescription(answerSdp, 'answer'));
+  final pc = _pc;
+  if (pc == null) {
+    throw StateError('applyAnswer called before createOffer.');
   }
+
+  print("========== APPLY ANSWER ==========");
+
+  await pc.setRemoteDescription(
+    RTCSessionDescription(answerSdp, 'answer'),
+  );
+
+  print("Remote Answer Applied");
+}
 
   /// Adds one remote ICE candidate as it arrives over the relay.
   /// Safe to call even if a candidate arrives slightly before the
@@ -117,15 +123,26 @@ print("Local Answer Applied");
   /// them and a dropped early one rarely matters given how many are
   /// typically gathered.
   Future<void> addRemoteIceCandidate({
-    required String candidate,
-    String? sdpMid,
-    int? sdpMLineIndex,
-  }) async {
-    final pc = _pc;
-    if (pc == null) return;
-    await pc.addCandidate(RTCIceCandidate(candidate, sdpMid, sdpMLineIndex));
+  required String candidate,
+  String? sdpMid,
+  int? sdpMLineIndex,
+}) async {
+  final pc = _pc;
+
+  print("========== REMOTE ICE ==========");
+  print("Candidate : $candidate");
+
+  if (pc == null) {
+    print("PeerConnection is NULL");
+    return;
   }
 
+  await pc.addCandidate(
+    RTCIceCandidate(candidate, sdpMid, sdpMLineIndex),
+  );
+
+  print("Remote ICE Added");
+}
   Future<void> sendRaw(Uint8List bytes) async {
     final channel = _dataChannel;
     if (channel == null || !isDataChannelOpen) {
