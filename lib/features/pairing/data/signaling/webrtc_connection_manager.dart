@@ -223,11 +223,10 @@ print("Send Complete");
 
   _dataChannel = channel;
 
-  channel.onDataChannelState = () {
-    print("========== DATA CHANNEL ==========");
-    print("State : ${channel.state}");
-  };
-
+  channel.onDataChannelState = (RTCDataChannelState state) {
+  print("========== DATA CHANNEL ==========");
+  print("State : $state");
+};
   channel.onMessage = (message) {
     print("========== DATA CHANNEL MESSAGE ==========");
     print("Binary : ${message.isBinary}");
