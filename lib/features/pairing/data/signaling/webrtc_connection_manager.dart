@@ -94,7 +94,11 @@ print("========== APPLY OFFER ==========");
 print("Remote Offer Applied");
 
     final answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
+
+print("Answer Created");
+
+await pc.setLocalDescription(answer);
+
 print("Local Answer Applied");
     return answer.sdp!;
   }
