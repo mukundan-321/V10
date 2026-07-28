@@ -65,7 +65,10 @@ class WebRtcConnectionManager {
     _bindDataChannel(channel);
 
     final offer = await pc.createOffer();
+print("========== CREATE OFFER ==========");
+print("Offer Created");
     await pc.setLocalDescription(offer);
+print("Local Description Set");
     return offer.sdp!;
   }
 
@@ -84,10 +87,15 @@ class WebRtcConnectionManager {
 
     pc.onDataChannel = (channel) => _bindDataChannel(channel);
 
+print("========== APPLY OFFER ==========");
+
     await pc.setRemoteDescription(RTCSessionDescription(remoteOfferSdp, 'offer'));
+
+print("Remote Offer Applied");
 
     final answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
+print("Local Answer Applied");
     return answer.sdp!;
   }
 
@@ -97,6 +105,7 @@ class WebRtcConnectionManager {
     if (pc == null) {
       throw StateError('applyAnswer called before createOffer.');
     }
+
     await pc.setRemoteDescription(RTCSessionDescription(answerSdp, 'answer'));
   }
 
@@ -144,23 +153,62 @@ class WebRtcConnectionManager {
   }
 
   void _bindConnectionState(RTCPeerConnection pc) {
-    pc.onConnectionState = (state) => _connectionStateController.add(state);
-  }
+  pc.onConnectionState = (state) {
+    print("========== PEER CONNECTION ==========");
+    print("Connection State : $state");
+    _connectionStateController.add(state);
+  };
+
+  pc.onIceConnectionState = (state) {
+    print("========== ICE CONNECTION ==========");
+    print("ICE State : $state");
+  };
+
+  pc.onIceGatheringState = (state) {
+    print("========== ICE GATHERING ==========");
+    print("ICE Gathering : $state");
+  };
+
+  pc.onSignalingState = (state) {
+    print("========== SIGNALING ==========");
+    print("Signaling State : $state");
+  };
+}
 
   void _bindIceCandidateTrickle(RTCPeerConnection pc) {
-    pc.onIceCandidate = (candidate) {
-      if (candidate.candidate != null && candidate.candidate!.isNotEmpty) {
-        _localIceCandidatesController.add(candidate);
-      }
-    };
-  }
+  pc.onIceCandidate = (candidate) {
+    print("========== LOCAL ICE ==========");
+    print("Candidate : ${candidate.candidate}");
+    print("Mid       : ${candidate.sdpMid}");
+    print("Index     : ${candidate.sdpMLineIndex}");
+
+    if (candidate.candidate != null &&
+        candidate.candidate!.isNotEmpty) {
+      _localIceCandidatesController.add(candidate);
+    }
+  };
+}
 
   void _bindDataChannel(RTCDataChannel channel) {
-    _dataChannel = channel;
-    channel.onMessage = (message) {
-      if (message.isBinary) {
-        _incomingMessagesController.add(message.binary);
-      }
-    };
-  }
+  print("========== DATA CHANNEL ==========");
+  print("Channel Created");
+
+  _dataChannel = channel;
+
+  channel.onDataChannelState = () {
+    print("========== DATA CHANNEL ==========");
+    print("State : ${channel.state}");
+  };
+
+  channel.onMessage = (message) {
+    print("========== DATA CHANNEL MESSAGE ==========");
+    print("Binary : ${message.isBinary}");
+
+    if (message.isBinary) {
+      print("Length : ${message.binary.length}");
+      _incomingMessagesController.add(message.binary);
+    } else {
+      print("Text : ${message.text}");
+    }
+  };
 }
