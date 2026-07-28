@@ -152,7 +152,14 @@ print("Local Answer Applied");
     if (channel == null || !isDataChannelOpen) {
       throw StateError('Data channel is not open.');
     }
-    await channel.send(RTCDataChannelMessage.fromBinary(bytes));
+    print("========== SEND RAW ==========");
+print("Sending ${bytes.length} bytes");
+
+await channel.send(
+  RTCDataChannelMessage.fromBinary(bytes),
+);
+
+print("Send Complete");
   }
 
   Future<void> close() async {
