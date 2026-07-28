@@ -49,7 +49,13 @@ class PairingRepositoryImpl implements PairingRepository {
 
   final _connectionManager = WebRtcConnectionManager();
   EncryptedTransport? _transport;
+final _debugController = StreamController<String>.broadcast();
 
+Stream<String> get debugStream => _debugController.stream;
+
+void _debug(String text) {
+  _debugController.add(text);
+}
   SignalingClient? _signalingClient;
   StreamSubscription<SignalingMessage>? _signalingSub;
   StreamSubscription<void>? _signalingClosedSub;
