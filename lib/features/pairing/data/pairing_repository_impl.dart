@@ -57,7 +57,7 @@ void _debug(String text) {
   _debugController.add(text);
 }
   SignalingClient? _signalingClient;
-  StreamSubscription<SignalingMessage>? _signalingSub;
+  StreamSubscription<void>? _signalingSub;
   StreamSubscription<void>? _signalingClosedSub;
   StreamSubscription<RTCIceCandidate>? _localCandidateSub;
   StreamSubscription<RTCPeerConnectionState>? _connectionStateSub;
