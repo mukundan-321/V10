@@ -138,18 +138,37 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   void _showEditDialog(ChatMessage message) {
-    final controller = TextEditingController(text: message.content ?? '');
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit message'),
-        content: TextField(controller: controller, maxLines: 4, autofocus: true),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () {
-              final newContent = controller.text.trim();
-              Navigator.pop(context);
+  final controller = TextEditingController(text: message.content ?? '');
+
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Edit message'),
+      content: TextField(
+        controller: controller,
+        maxLines: 4,
+        autofocus: true,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () {
+            final newContent = controller.text.trim();
+            Navigator.pop(context);
+
+            ref
+                .read(chatRepositoryProvider)
+                .editMessage(message.id, newContent)
+                .then(_showErrorIfFailed);
+          },
+          child: const Text('Save'),
+        ),
+      ],
+    ),
+  );
 }
 
 void _showAttachmentSheet() {
@@ -163,7 +182,7 @@ void _showAttachmentSheet() {
             title: const Text("Gallery"),
             onTap: () {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
+             } ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Gallery coming soon")),
               );
             },
@@ -348,13 +367,11 @@ void _showAttachmentSheet() {
             _composerController.text.trim().isEmpty
                 ? Icons.mic
                 : Icons.send,
-          ),
-        ),
-      ],
-    ),
-  ),
-);
-}
+),
+         ],
+       ),
+     );
+   }
 }
 
 class _MessageBubble extends StatelessWidget {
