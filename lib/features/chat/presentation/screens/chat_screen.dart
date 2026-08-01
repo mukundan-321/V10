@@ -150,6 +150,57 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             onPressed: () {
               final newContent = controller.text.trim();
               Navigator.pop(context);
+void _showAttachmentSheet() {
+  showModalBottomSheet(
+    context: context,
+    builder: (_) => SafeArea(
+      child: Wrap(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.photo),
+            title: const Text("Gallery"),
+            onTap: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Gallery coming soon")),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.camera_alt),
+            title: const Text("Camera"),
+            onTap: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Camera coming soon")),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.videocam),
+            title: const Text("Video"),
+            onTap: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Video coming soon")),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.insert_drive_file),
+            title: const Text("Document"),
+            onTap: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Document coming soon")),
+              );
+            },
+          ),
+        ],
+      ),
+    ),
+  );
+}
               // Dialog closes immediately (no reason to block the UI on
               // this), but the Future is still awaited and its result
               // checked — not fired-and-forgotten — so a failure still
