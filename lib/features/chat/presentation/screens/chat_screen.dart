@@ -301,38 +301,57 @@ void _showAttachmentSheet() {
               ),
             ),
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _composerController,
-                      minLines: 1,
-                      maxLines: 5,
-                      textCapitalization: TextCapitalization.sentences,
-                      decoration: const InputDecoration(
-                        hintText: 'Message',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      ),
-                      onSubmitted: (_) => _send(),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton.filled(
-                    icon: const Icon(Icons.send),
-                    onPressed: _send,
-                  ),
-                ],
+  child: Padding(
+    padding: const EdgeInsets.all(8),
+    child: Row(
+      children: [
+        IconButton(
+          icon: const Icon(Icons.attach_file),
+          onPressed: _showAttachmentSheet,
+        ),
+        Expanded(
+          child: TextField(
+            controller: _composerController,
+            minLines: 1,
+            maxLines: 5,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: const InputDecoration(
+              hintText: "Message",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.all(
+                  Radius.circular(24),
+                ),
+              ),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 10,
               ),
             ),
+            onChanged: (_) => setState(() {}),
+            onSubmitted: (_) => _send(),
           ),
-        ],
-      ),
-    );
-  }
-}
+        ),
+        const SizedBox(width: 8),
+        IconButton.filled(
+          onPressed: _composerController.text.trim().isEmpty
+              ? () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Voice messages coming soon"),
+                    ),
+                  );
+                }
+              : _send,
+          icon: Icon(
+            _composerController.text.trim().isEmpty
+                ? Icons.mic
+                : Icons.send,
+          ),
+        ),
+      ],
+    ),
+  ),
+)
 
 class _MessageBubble extends StatelessWidget {
   final ChatMessage message;
