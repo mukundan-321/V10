@@ -61,6 +61,7 @@ void _debug(String text) {
   StreamSubscription<void>? _signalingClosedSub;
   StreamSubscription<RTCIceCandidate>? _localCandidateSub;
   StreamSubscription<RTCPeerConnectionState>? _connectionStateSub;
+  StreamSubscription<RTCDataChannelState>? _dataChannelStateSub;
 
   final _stageController = StreamController<PairingStage>.broadcast();
 
@@ -202,8 +203,8 @@ void _debug(String text) {
   }
 
   @override
-  Stream<bool> get connectionStatus => _connectionManager.connectionState
-      .map((s) => s == RTCPeerConnectionState.RTCPeerConnectionStateConnected);
+  Stream<bool> get connectionStatus => _connectionManager.dataChannelState
+      .map((s) => s == RTCDataChannelState.RTCDataChannelOpen);
 
   @override
   Stream<PairingStage> get pairingStage => _stageController.stream;
@@ -214,7 +215,7 @@ void _debug(String text) {
   // --- Signaling message handling ------------------------------------
 
   void _bindSignalingClient(SignalingClient client) {
-    _signalingSub = client.incoming.listen(_handleSignalingMessage);
+    _signalingSub = client.incoming.asyncMap(_handleSignalingMessage).listen((_) {});
     _signalingClosedSub = client.connectionClosed.listen((_) {
       // Expected once pairing completes (server closes both sockets
       // after seeing data_channel_open from both sides) -- only treat
@@ -255,16 +256,21 @@ void _debug(String text) {
   void _bindConnectionState() {
     _connectionStateSub =
     _connectionManager.connectionState.listen((state) async {
+      print("WebRTC State: $state");
+      if (state == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
+        _stageController.add(PairingStage.failed);
+      }
+    });
 
-  print("WebRTC State: $state");
-      if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
+    _dataChannelStateSub =
+    _connectionManager.dataChannelState.listen((state) async {
+      print("DataChannel State: $state");
+      if (state == RTCDataChannelState.RTCDataChannelOpen) {
         _stageController.add(PairingStage.connected);
         if (!_dataChannelOpenSent) {
           _dataChannelOpenSent = true;
           _signalingClient?.send(const DataChannelOpenMessage());
         }
-      } else if (state == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
-        _stageController.add(PairingStage.failed);
       }
     });
   }
@@ -470,6 +476,7 @@ print("ICE Candidate Received");
     await _signalingClosedSub?.cancel();
     await _localCandidateSub?.cancel();
     await _connectionStateSub?.cancel();
+    await _dataChannelStateSub?.cancel();
     await _signalingClient?.close();
     _signalingClient = null;
     _peerSigningKeyBase64 = null;
