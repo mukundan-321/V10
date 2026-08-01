@@ -150,6 +150,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             onPressed: () {
               final newContent = controller.text.trim();
               Navigator.pop(context);
+}
+
 void _showAttachmentSheet() {
   showModalBottomSheet(
     context: context,
@@ -351,7 +353,9 @@ void _showAttachmentSheet() {
       ],
     ),
   ),
-)
+);
+}
+}
 
 class _MessageBubble extends StatelessWidget {
   final ChatMessage message;
