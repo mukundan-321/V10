@@ -24,14 +24,33 @@ class WebRtcConnectionManager {
   RTCPeerConnection? _pc;
   RTCDataChannel? _dataChannel;
 
+  RTCPeerConnectionState? _currentConnectionState;
+  RTCDataChannelState? _currentDataChannelState;
+
   final _connectionStateController =
       StreamController<RTCPeerConnectionState>.broadcast();
+  final _dataChannelStateController = 
+      StreamController<RTCDataChannelState>.broadcast();
   final _incomingMessagesController = StreamController<Uint8List>.broadcast();
   final _localIceCandidatesController =
       StreamController<RTCIceCandidate>.broadcast();
 
-  Stream<RTCPeerConnectionState> get connectionState =>
-      _connectionStateController.stream;
+  final List<RTCIceCandidate> _queuedRemoteCandidates = [];
+
+  Stream<RTCPeerConnectionState> get connectionState async* {
+    if (_currentConnectionState != null) {
+      yield _currentConnectionState!;
+    }
+    yield* _connectionStateController.stream;
+  }
+  
+  Stream<RTCDataChannelState> get dataChannelState async* {
+    if (_currentDataChannelState != null) {
+      yield _currentDataChannelState!;
+    }
+    yield* _dataChannelStateController.stream;
+  }
+
   Stream<Uint8List> get incomingMessages => _incomingMessagesController.stream;
 
   /// Emits each local ICE candidate as soon as it's discovered — the
@@ -93,6 +112,8 @@ print("========== APPLY OFFER ==========");
 
 print("Remote Offer Applied");
 
+    await _drainQueuedRemoteCandidates();
+
     final answer = await pc.createAnswer();
 
 print("Answer Created");
@@ -117,6 +138,8 @@ print("Local Answer Applied");
   );
 
   print("Remote Answer Applied");
+  
+  await _drainQueuedRemoteCandidates();
 }
 
   /// Adds one remote ICE candidate as it arrives over the relay.
@@ -136,17 +159,30 @@ print("Local Answer Applied");
   print("========== REMOTE ICE ==========");
   print("Candidate : $candidate");
 
-  if (pc == null) {
-    print("PeerConnection is NULL");
+  final rtcIceCandidate = RTCIceCandidate(candidate, sdpMid, sdpMLineIndex);
+
+  if (pc == null || await pc.getRemoteDescription() == null) {
+    print("PeerConnection or Remote Description is NULL. Queuing candidate.");
+    _queuedRemoteCandidates.add(rtcIceCandidate);
     return;
   }
 
-  await pc.addCandidate(
-    RTCIceCandidate(candidate, sdpMid, sdpMLineIndex),
-  );
+  await pc.addCandidate(rtcIceCandidate);
 
   print("Remote ICE Added");
 }
+
+  Future<void> _drainQueuedRemoteCandidates() async {
+    final pc = _pc;
+    if (pc == null) return;
+    
+    for (final candidate in _queuedRemoteCandidates) {
+      print("Draining queued ICE candidate");
+      await pc.addCandidate(candidate);
+    }
+    _queuedRemoteCandidates.clear();
+  }
+
   Future<void> sendRaw(Uint8List bytes) async {
     final channel = _dataChannel;
     if (channel == null || !isDataChannelOpen) {
@@ -166,6 +202,7 @@ print("Send Complete");
     await _dataChannel?.close();
     await _pc?.close();
     await _connectionStateController.close();
+    await _dataChannelStateController.close();
     await _incomingMessagesController.close();
     await _localIceCandidatesController.close();
   }
@@ -178,12 +215,16 @@ print("Send Complete");
     await _pc?.close();
     _dataChannel = null;
     _pc = null;
+    _currentConnectionState = null;
+    _currentDataChannelState = null;
+    _queuedRemoteCandidates.clear();
   }
 
   void _bindConnectionState(RTCPeerConnection pc) {
   pc.onConnectionState = (state) {
     print("========== PEER CONNECTION ==========");
     print("Connection State : $state");
+    _currentConnectionState = state;
     _connectionStateController.add(state);
   };
 
@@ -222,10 +263,13 @@ print("Send Complete");
   print("Channel Created");
 
   _dataChannel = channel;
+  _currentDataChannelState = channel.state;
 
   channel.onDataChannelState = (RTCDataChannelState state) {
   print("========== DATA CHANNEL ==========");
   print("State : $state");
+  _currentDataChannelState = state;
+  _dataChannelStateController.add(state);
 };
   channel.onMessage = (message) {
     print("========== DATA CHANNEL MESSAGE ==========");
