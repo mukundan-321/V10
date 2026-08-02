@@ -135,6 +135,35 @@ late final ChatMediaCoordinator _media;
       return false;
     }
   }
+Future<void> _insertPendingMediaMessage({
+  required String messageId,
+  required MediaAttachment media,
+  required bool isOutgoing,
+}) async {
+  await db.into(db.messages).insert(
+    MessagesCompanion.insert(
+      id: messageId,
+      senderDeviceId: isOutgoing
+          ? _localDeviceIdPlaceholder
+          : _peerDeviceIdPlaceholder,
+      content: const Value(null),
+      sentAt: DateTime.now(),
+      mediaMetadataId: Value(media.transferId),
+    ),
+  );
+}
+
+Future<void> _updateMessageMedia({
+  required String messageId,
+  required MediaTransferStatus status,
+  required int bytesTransferred,
+  String? localPath,
+  String? errorMessage,
+}) async {
+  // TODO:
+  // When the MediaMetadata table is extended, update the media row here.
+  // For now we only keep the chat message alive while transfers run.
+}
 
   @override
   Future<Result<ChatMessage>> sendMessage({
@@ -151,6 +180,77 @@ late final ChatMediaCoordinator _media;
             replyToMessageId: Value(replyToMessageId),
             sentAt: now,
           ));
+@override
+Future<Result<String>> sendImage({
+  required File file,
+  required int width,
+  required int height,
+}) async {
+  try {
+    final id = await _media.sendImage(
+      file: file,
+      width: width,
+      height: height,
+    );
+    return Ok(id);
+  } catch (e) {
+    return Err(LocalStorageFailure(e.toString()));
+  }
+}
+
+@override
+Future<Result<String>> sendVideo({
+  required File file,
+  required int width,
+  required int height,
+  required int durationMs,
+  File? thumbnail,
+}) async {
+  try {
+    final id = await _media.sendVideo(
+      file: file,
+      width: width,
+      height: height,
+      durationMs: durationMs,
+      thumbnail: thumbnail,
+    );
+    return Ok(id);
+  } catch (e) {
+    return Err(LocalStorageFailure(e.toString()));
+  }
+}
+
+@override
+Future<Result<String>> sendDocument({
+  required File file,
+  required String filename,
+}) async {
+  try {
+    final id = await _media.sendDocument(
+      file: file,
+      filename: filename,
+    );
+    return Ok(id);
+  } catch (e) {
+    return Err(LocalStorageFailure(e.toString()));
+  }
+}
+
+@override
+Future<Result<String>> sendVoiceMessage({
+  required File file,
+  required int durationMs,
+}) async {
+  try {
+    final id = await _media.sendVoiceMessage(
+      file: file,
+      durationMs: durationMs,
+    );
+    return Ok(id);
+  } catch (e) {
+    return Err(LocalStorageFailure(e.toString()));
+  }
+}
 
       final delivered = await _tryPushOverWire({
         'type': 'message',
