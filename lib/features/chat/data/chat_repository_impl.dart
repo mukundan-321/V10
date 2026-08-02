@@ -180,6 +180,31 @@ Future<void> _updateMessageMedia({
             replyToMessageId: Value(replyToMessageId),
             sentAt: now,
           ));
+
+      final delivered = await _tryPushOverWire({
+        'type': 'message',
+        'id': id,
+        'content': content,
+        'replyToMessageId': replyToMessageId,
+        'sentAt': now.toIso8601String(),
+      });
+      if (delivered) {
+        await (db.update(db.messages)..where((t) => t.id.equals(id)))
+            .write(MessagesCompanion(deliveredAt: Value(DateTime.now())));
+      }
+
+      return Ok(ChatMessage(
+        id: id,
+        senderDeviceId: _localDeviceIdPlaceholder,
+        content: content,
+        replyToMessageId: replyToMessageId,
+        sentAt: now,
+        deliveredAt: delivered ? DateTime.now() : null,
+      ));
+    } catch (e) {
+      return Err(LocalStorageFailure(e.toString()));
+    }
+  }
 @override
 Future<Result<String>> sendImage({
   required File file,
@@ -251,32 +276,6 @@ Future<Result<String>> sendVoiceMessage({
     return Err(LocalStorageFailure(e.toString()));
   }
 }
-
-      final delivered = await _tryPushOverWire({
-        'type': 'message',
-        'id': id,
-        'content': content,
-        'replyToMessageId': replyToMessageId,
-        'sentAt': now.toIso8601String(),
-      });
-      if (delivered) {
-        await (db.update(db.messages)..where((t) => t.id.equals(id)))
-            .write(MessagesCompanion(deliveredAt: Value(DateTime.now())));
-      }
-
-      return Ok(ChatMessage(
-        id: id,
-        senderDeviceId: _localDeviceIdPlaceholder,
-        content: content,
-        replyToMessageId: replyToMessageId,
-        sentAt: now,
-        deliveredAt: delivered ? DateTime.now() : null,
-      ));
-    } catch (e) {
-      return Err(LocalStorageFailure(e.toString()));
-    }
-  }
-
   @override
   Future<Result<void>> editMessage(String messageId, String newContent) async {
     final rows = await (db.update(db.messages)
