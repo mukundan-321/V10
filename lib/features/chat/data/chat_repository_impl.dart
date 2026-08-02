@@ -8,6 +8,12 @@ import 'package:two_person_app/core/database/app_database.dart';
 import 'package:two_person_app/core/error/failures.dart';
 import 'package:two_person_app/core/utils/result.dart';
 import 'package:two_person_app/features/chat/domain/entities/message.dart';
+import 'dart:io';
+
+import 'package:two_person_app/features/chat/domain/chat_message_media.dart';
+import 'package:two_person_app/features/chat/data/chat_media_coordinator.dart';
+import 'package:two_person_app/features/chat/data/media_repository.dart';
+import 'package:two_person_app/features/chat/data/media_file_storage.dart';
 import 'package:two_person_app/features/chat/domain/repositories/chat_repository.dart';
 import 'package:two_person_app/features/pairing/domain/repositories/pairing_repository.dart';
 
