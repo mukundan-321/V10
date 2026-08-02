@@ -521,7 +521,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 }
-  class _MessageBubble extends StatelessWidget {
+class _MessageBubble extends StatelessWidget {
   final ChatMessage message;
   final bool isMine;
   final VoidCallback onLongPress;
