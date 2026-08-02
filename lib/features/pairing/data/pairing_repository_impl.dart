@@ -211,6 +211,8 @@ void _debug(String text) {
 
   @override
   EncryptedChannel? get transport => _transport;
+  @override
+WebRtcConnectionManager get connectionManager => _connectionManager;
 
   // --- Signaling message handling ------------------------------------
 
