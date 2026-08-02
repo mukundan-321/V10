@@ -4,6 +4,8 @@ import 'package:two_person_app/core/database/app_database.dart';
 
 import 'package:two_person_app/features/chat/domain/repositories/chat_repository.dart';
 import 'package:two_person_app/features/chat/data/chat_repository_impl.dart';
+import 'package:two_person_app/features/chat/data/media_repository.dart';
+import 'package:two_person_app/features/chat/data/media_file_storage.dart';
 
 import 'package:two_person_app/features/pairing/domain/repositories/pairing_repository.dart';
 import 'package:two_person_app/features/pairing/data/pairing_repository_impl.dart';
@@ -48,6 +50,9 @@ Future<void> configureDependencies({required String dbPassphrase}) async {
       baseWsUrl: _signalingWsBaseUrl,
     ),
   );
+final mediaStorage = await AppMediaFileStorage.create();
+
+sl.registerSingleton<AppMediaFileStorage>(mediaStorage);
 
   // Chat
   sl.registerLazySingleton<ChatRepository>(
