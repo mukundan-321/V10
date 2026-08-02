@@ -61,7 +61,7 @@ class WebRtcConnectionManager {
 
   bool get isDataChannelOpen =>
       _dataChannel?.state == RTCDataChannelState.RTCDataChannelOpen;
-
+RTCDataChannel? get dataChannel => _dataChannel;
   /// Offer side (pairing initiator). Creates the peer connection and
   /// opens the data channel locally (the answerer receives it via
   /// `onDataChannel`). Returns immediately after the local
