@@ -28,12 +28,27 @@ const _peerDeviceIdPlaceholder = 'peer';
 class ChatRepositoryImpl implements ChatRepository {
   final AppDatabase db;
   final PairingRepository pairingRepository;
+final MediaRepository mediaRepository;
+final AppMediaFileStorage storage;
+
+late final ChatMediaCoordinator _media;
   final _uuid = const Uuid();
 
   StreamSubscription<bool>? _connectionSub;
   StreamSubscription<List<int>>? _incomingSub;
 
-  ChatRepositoryImpl({required this.db, required this.pairingRepository}) {
+  ChatRepositoryImpl({
+  required this.db,
+  required this.pairingRepository,
+  required this.mediaRepository,
+  required this.storage,
+}) {
+  _media = ChatMediaCoordinator(
+    mediaRepository: mediaRepository,
+    storage: storage,
+    createPendingMessage: _insertPendingMediaMessage,
+    updateMessageMedia: _updateMessageMedia,
+  );
     _connectionSub = pairingRepository.connectionStatus.listen((connected) {
       _incomingSub?.cancel();
       final transport = pairingRepository.transport;
@@ -43,10 +58,11 @@ class ChatRepositoryImpl implements ChatRepository {
     });
   }
 
-  void dispose() {
-    _connectionSub?.cancel();
-    _incomingSub?.cancel();
-  }
+  Future<void> dispose() async {
+  _connectionSub?.cancel();
+  _incomingSub?.cancel();
+  await _media.dispose();
+}
 
   Future<void> _handleIncomingFrame(List<int> bytes) async {
     try {
