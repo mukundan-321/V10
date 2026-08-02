@@ -520,6 +520,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       ),
     );
   }
+}
   class _MessageBubble extends StatelessWidget {
   final ChatMessage message;
   final bool isMine;
