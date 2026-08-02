@@ -63,3 +63,7 @@ abstract class PairingRepository {
   /// and the data channel is open. Null before that point.
   EncryptedChannel? get transport;
 }
+/// Exposes the active WebRTC connection so the media layer can wrap the
+/// existing RTCDataChannel. The media layer never creates another
+/// PeerConnection.
+WebRtcConnectionManager? get connectionManager;
