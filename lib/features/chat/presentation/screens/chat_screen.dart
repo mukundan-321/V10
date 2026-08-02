@@ -180,13 +180,14 @@ void _showAttachmentSheet() {
           ListTile(
             leading: const Icon(Icons.photo),
             title: const Text("Gallery"),
-            onTap: () {
-              Navigator.pop(context);
-             } ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Gallery coming soon")),
-              );
-            },
-          ),
+           onTap: () {
+  Navigator.pop(context);
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text("Gallery coming soon"),
+    ),
+  );
+},
           ListTile(
             leading: const Icon(Icons.camera_alt),
             title: const Text("Camera"),
@@ -227,17 +228,7 @@ void _showAttachmentSheet() {
               // checked — not fired-and-forgotten — so a failure still
               // reaches the user via a snackbar instead of silently
               // vanishing.
-              ref.read(chatRepositoryProvider).editMessage(message.id, newContent).then(
-                    _showErrorIfFailed,
-                  );
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-  }
-
+             
   @override
   Widget build(BuildContext context) {
     final messagesAsync = ref.watch(messagesProvider);
@@ -367,12 +358,12 @@ void _showAttachmentSheet() {
             _composerController.text.trim().isEmpty
                 ? Icons.mic
                 : Icons.send,
+          ),
+        ),
+      ],
+    ),
+  ),
 ),
-         ],
-       ),
-     );
-   }
-}
 
 class _MessageBubble extends StatelessWidget {
   final ChatMessage message;
