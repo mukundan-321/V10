@@ -43,6 +43,18 @@ class ChatRepositoryImpl implements ChatRepository {
   required this.mediaSession,
   required this.storage,
 });
+
+void attachMediaRepository(MediaRepository repository) {
+  _media?.dispose();
+
+  _media = ChatMediaCoordinator(
+    mediaRepository: repository,
+    storage: storage,
+    createPendingMessage: _insertPendingMediaMessage,
+    updateMessageMedia: _updateMessageMedia,
+  );
+}
+
     _connectionSub = pairingRepository.connectionStatus.listen((connected) {
       _incomingSub?.cancel();
       final transport = pairingRepository.transport;
