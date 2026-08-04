@@ -23,6 +23,7 @@ class WebRtcConnectionManager {
 
   RTCPeerConnection? _pc;
   RTCDataChannel? _dataChannel;
+RTCDataChannel? get dataChannel => _dataChannel;
 
   RTCPeerConnectionState? _currentConnectionState;
   RTCDataChannelState? _currentDataChannelState;
