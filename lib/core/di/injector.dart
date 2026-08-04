@@ -12,7 +12,12 @@ import 'package:two_person_app/features/pairing/data/pairing_repository_impl.dar
 import 'package:two_person_app/features/pairing/data/crypto/secure_key_store.dart';
 import 'package:two_person_app/features/pairing/data/crypto/identity_key_service.dart';
 import 'package:two_person_app/features/pairing/data/signaling/invite_api_client.dart';
-
+import 'package:two_person_app/features/chat/data/chunked_file_sender.dart';
+import 'package:two_person_app/features/chat/data/chunked_file_receiver.dart';
+import 'package:two_person_app/features/chat/data/media_metadata_dao.dart';
+import 'package:two_person_app/features/chat/data/media_transfer_progress_store.dart';
+import 'package:two_person_app/features/chat/data/rtc_media_data_channel.dart';
+import 'package:two_person_app/core/media/session_cipher.dart';
 final GetIt sl = GetIt.instance;
 
 /// Your deployed Render signaling server.
