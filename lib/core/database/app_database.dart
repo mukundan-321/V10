@@ -25,6 +25,18 @@ class AppDatabase extends _$AppDatabase {
   @override
 int get schemaVersion => 2;
 
+@override
+MigrationStrategy get migration => MigrationStrategy(
+  onCreate: (Migrator m) async {
+    await m.createAll();
+  },
+  onUpgrade: (Migrator m, int from, int to) async {
+    // During development it's usually simplest to recreate the database
+    // after schema changes. Add proper ALTER TABLE migrations before
+    // releasing to production.
+  },
+);
+
   /// Opens (or creates) the encrypted local database.
   ///
   /// [passphrase] is derived by the crypto module from the device's
