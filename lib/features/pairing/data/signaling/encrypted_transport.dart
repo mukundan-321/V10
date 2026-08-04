@@ -78,3 +78,12 @@ class EncryptedTransport implements EncryptedChannel {
     );
   }
 }
+WebRtcConnectionManager get webRtcConnection => connection;
+
+SessionCipher get sessionCipher {
+  final cipher = _cipher;
+  if (cipher == null) {
+    throw StateError('Session cipher not attached.');
+  }
+  return cipher;
+}
