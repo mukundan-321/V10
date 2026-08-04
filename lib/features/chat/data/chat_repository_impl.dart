@@ -40,15 +40,9 @@ class ChatRepositoryImpl implements ChatRepository {
   ChatRepositoryImpl({
   required this.db,
   required this.pairingRepository,
-  required this.mediaRepository,
+  required this.mediaSession,
   required this.storage,
-}) {
-  _media = ChatMediaCoordinator(
-    mediaRepository: mediaRepository,
-    storage: storage,
-    createPendingMessage: _insertPendingMediaMessage,
-    updateMessageMedia: _updateMessageMedia,
-  );
+});
     _connectionSub = pairingRepository.connectionStatus.listen((connected) {
       _incomingSub?.cancel();
       final transport = pairingRepository.transport;
