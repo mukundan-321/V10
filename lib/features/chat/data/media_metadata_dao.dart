@@ -1,16 +1,18 @@
 import 'package:drift/drift.dart';
 
 import '../../../core/database/app_database.dart';
-import 'media_transfer_progress_store.dart';
 import 'chunked_file_receiver.dart';
+import 'media_transfer_progress_store.dart';
 
 class MediaMetadataDao
-    implements
-        MediaMetadataOutgoingDao,
-        MediaReceiveProgressStore {
+    implements MediaMetadataOutgoingDao, MediaReceiveProgressStore {
   MediaMetadataDao(this.db);
 
   final AppDatabase db;
+
+  // ---------------------------------------------------------------------------
+  // OUTGOING
+  // ---------------------------------------------------------------------------
 
   @override
   Future<void> insertOutgoing({
@@ -29,7 +31,7 @@ class MediaMetadataDao
             localPath: '',
             mimeType: mimeType,
             sizeBytes: totalBytes,
-            checksumSha256: const Value(null),
+            checksumSha256: '',
             transferState: 'sending',
             totalChunks: Value(totalChunks),
           ),
@@ -46,8 +48,16 @@ class MediaMetadataDao
           ..where((t) => t.id.equals(transferId)))
         .write(
       MediaMetadataTableCompanion(
-        bytesTransferred: Value(bytesSent),
-        chunksTransferred: Value(chunksSent),
+        transferredBytes: Value(bytesSent),
+        transferredChunks: Value(chunksSent),
+        transferProgress: Value(
+          bytesSent == 0
+              ? 0
+              : bytesSent /
+                  (db.mediaMetadataTable.sizeBytes.defaultValue == null
+                      ? bytesSent
+                      : bytesSent),
+        ),
       ),
     );
   }
@@ -95,6 +105,10 @@ class MediaMetadataDao
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // INCOMING
+  // ---------------------------------------------------------------------------
+
   @override
   Future<void> createIncomingTransfer({
     required String transferId,
@@ -114,7 +128,7 @@ class MediaMetadataDao
             localPath: localPath,
             mimeType: mimeType,
             sizeBytes: totalBytes,
-            checksumSha256: const Value(null),
+            checksumSha256: '',
             transferState: 'receiving',
             totalChunks: Value(totalChunks),
             widthPx: Value(extraMetadata['width'] as int?),
@@ -134,8 +148,8 @@ class MediaMetadataDao
           ..where((t) => t.id.equals(transferId)))
         .write(
       MediaMetadataTableCompanion(
-        bytesTransferred: Value(bytesReceived),
-        chunksTransferred: Value(chunksReceived),
+        transferredBytes: Value(bytesReceived),
+        transferredChunks: Value(chunksReceived),
       ),
     );
   }
@@ -182,4 +196,4 @@ class MediaMetadataDao
       ),
     );
   }
-        }
+}
