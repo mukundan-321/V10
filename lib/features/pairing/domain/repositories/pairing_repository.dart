@@ -4,7 +4,12 @@ import 'package:two_person_app/features/pairing/domain/entities/device_identity.
 import 'package:two_person_app/features/pairing/domain/entities/encrypted_channel.dart';
 import 'package:two_person_app/features/pairing/domain/entities/invite.dart';
 import 'package:two_person_app/features/pairing/domain/entities/pairing_stage.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
+import '../data/crypto/session_crypto_service.dart';
 
+RTCDataChannel? get rtcDataChannel;
+
+SessionCipher? get sessionCipher;
 /// Contract for identity, key exchange, and the live connection to the
 /// one other person this app talks to. Chat depends only on this
 /// interface -- never on the signaling relay, WebRTC, or crypto types
