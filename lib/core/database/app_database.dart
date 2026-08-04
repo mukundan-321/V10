@@ -23,7 +23,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
   @override
-  int get schemaVersion => 1;
+int get schemaVersion => 2;
 
   /// Opens (or creates) the encrypted local database.
   ///
