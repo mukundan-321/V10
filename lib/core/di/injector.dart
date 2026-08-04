@@ -58,7 +58,13 @@ Future<void> configureDependencies({required String dbPassphrase}) async {
 final mediaStorage = await AppMediaFileStorage.create();
 
 sl.registerSingleton<AppMediaFileStorage>(mediaStorage);
+sl.registerLazySingleton<MediaMetadataDao>(
+  () => MediaMetadataDao(sl()),
+);
 
+sl.registerLazySingleton<DriftMediaTransferProgressStore>(
+  () => DriftMediaTransferProgressStore(sl<MediaMetadataDao>()),
+);
   // Chat
   sl.registerLazySingleton<ChatRepository>(
     () => ChatRepositoryImpl(
