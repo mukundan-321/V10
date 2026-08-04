@@ -218,22 +218,13 @@ Future<Result<String>> sendImage({
   required int height,
 }) async {
   try {
-    final repository = mediaSession.repository;
-
-    if (repository == null) {
+    if (_media == null) {
       return const Err(
         UnknownFailure("Media session not ready."),
       );
     }
 
-    final media = ChatMediaCoordinator(
-      mediaRepository: repository,
-      storage: storage,
-      createPendingMessage: _insertPendingMediaMessage,
-      updateMessageMedia: _updateMessageMedia,
-    );
-
-    final id = await media.sendImage(
+    final id = await _media!.sendImage(
       file: file,
       width: width,
       height: height,
@@ -254,22 +245,13 @@ Future<Result<String>> sendVideo({
   File? thumbnail,
 }) async {
   try {
-    final repository = mediaSession.repository;
-
-    if (repository == null) {
+    if (_media == null) {
       return const Err(
         UnknownFailure("Media session not ready."),
       );
     }
 
-    final media = ChatMediaCoordinator(
-      mediaRepository: repository,
-      storage: storage,
-      createPendingMessage: _insertPendingMediaMessage,
-      updateMessageMedia: _updateMessageMedia,
-    );
-
-    final id = await media.sendVideo(
+    final id = await _media!.sendVideo(
       file: file,
       width: width,
       height: height,
@@ -289,22 +271,13 @@ Future<Result<String>> sendDocument({
   required String filename,
 }) async {
   try {
-    final repository = mediaSession.repository;
-
-    if (repository == null) {
+    if (_media == null) {
       return const Err(
         UnknownFailure("Media session not ready."),
       );
     }
 
-    final media = ChatMediaCoordinator(
-      mediaRepository: repository,
-      storage: storage,
-      createPendingMessage: _insertPendingMediaMessage,
-      updateMessageMedia: _updateMessageMedia,
-    );
-
-    final id = await media.sendDocument(
+    final id = await _media!.sendDocument(
       file: file,
       filename: filename,
     );
@@ -321,22 +294,13 @@ Future<Result<String>> sendVoiceMessage({
   required int durationMs,
 }) async {
   try {
-    final repository = mediaSession.repository;
-
-    if (repository == null) {
+    if (_media == null) {
       return const Err(
         UnknownFailure("Media session not ready."),
       );
     }
 
-    final media = ChatMediaCoordinator(
-      mediaRepository: repository,
-      storage: storage,
-      createPendingMessage: _insertPendingMediaMessage,
-      updateMessageMedia: _updateMessageMedia,
-    );
-
-    final id = await media.sendVoiceMessage(
+    final id = await _media!.sendVoiceMessage(
       file: file,
       durationMs: durationMs,
     );
