@@ -60,6 +60,9 @@ Future<void> configureDependencies({required String dbPassphrase}) async {
 final mediaStorage = await AppMediaFileStorage.create();
 
 sl.registerSingleton<AppMediaFileStorage>(mediaStorage);
+sl.registerLazySingleton<MediaSessionManager>(
+  () => MediaSessionManager(),
+);
 sl.registerLazySingleton<MediaMetadataDao>(
   () => MediaMetadataDao(sl()),
 );
