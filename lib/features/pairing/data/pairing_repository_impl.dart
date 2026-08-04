@@ -211,6 +211,13 @@ void _debug(String text) {
 
   @override
   EncryptedChannel? get transport => _transport;
+@override
+RTCDataChannel? get rtcDataChannel =>
+    _transport?.webRtcConnection.dataChannel;
+
+@override
+SessionCipher? get sessionCipher =>
+    _transport?.sessionCipher;
   @override
 WebRtcConnectionManager get connectionManager => _connectionManager;
 
