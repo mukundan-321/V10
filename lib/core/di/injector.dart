@@ -7,6 +7,8 @@ import 'package:two_person_app/features/chat/data/chat_repository_impl.dart';
 import 'package:two_person_app/features/chat/data/media_repository.dart';
 import 'package:two_person_app/features/chat/data/media_file_storage.dart';
 
+import 'package:two_person_app/features/chat/data/media_session_manager.dart';
+
 import 'package:two_person_app/features/pairing/domain/repositories/pairing_repository.dart';
 import 'package:two_person_app/features/pairing/data/pairing_repository_impl.dart';
 import 'package:two_person_app/features/pairing/data/crypto/secure_key_store.dart';
