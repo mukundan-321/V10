@@ -7,32 +7,41 @@ import 'package:drift/drift.dart';
 @TableIndex(name: 'messages_sent_at_idx', columns: {#sentAt})
 class Messages extends Table {
   TextColumn get id => text()(); // UUID, generated on send/receive
+
   TextColumn get senderDeviceId => text()();
+
   TextColumn get content => text().nullable()(); // null if media-only
+
   // Deliberately NOT a SQL foreign key: this is a P2P app with no
   // guaranteed delivery order, so a reply can legitimately arrive
-  // before the message it replies to has synced. An FK here would be
-  // unenforced today (SQLite foreign key checks are off by default,
-  // and this codebase never turns them on) but would silently start
-  // rejecting valid out-of-order replies the moment anyone "correctly"
-  // enables `PRAGMA foreign_keys = ON` later. Referential integrity
-  // for this column is intentionally an application-level concern,
-  // not a database-level one.
+  // before the message it replies to has synced.
   TextColumn get replyToMessageId => text().nullable()();
+
   TextColumn get threadRootId => text().nullable()();
-  BoolColumn get isEdited => boolean().withDefault(const Constant(false))();
+
+  BoolColumn get isEdited =>
+      boolean().withDefault(const Constant(false))();
+
   DateTimeColumn get editedAt => dateTime().nullable()();
+
   BoolColumn get isDeletedForMe =>
       boolean().withDefault(const Constant(false))();
+
   BoolColumn get isDeletedForBoth =>
       boolean().withDefault(const Constant(false))();
-  BoolColumn get isPinned => boolean().withDefault(const Constant(false))();
+
+  BoolColumn get isPinned =>
+      boolean().withDefault(const Constant(false))();
+
   TextColumn get forwardedFromMessageId => text().nullable()();
+
   DateTimeColumn get sentAt => dateTime()();
+
   DateTimeColumn get deliveredAt => dateTime().nullable()();
+
   DateTimeColumn get readAt => dateTime().nullable()();
-  // Also not a SQL foreign key, for the same out-of-order-delivery
-  // reason as replyToMessageId above.
+
+  // Links to MediaMetadataTable.id (transferId).
   TextColumn get mediaMetadataId => text().nullable()();
 
   @override
@@ -41,50 +50,57 @@ class Messages extends Table {
 
 @DataClassName('MediaMetadataRow')
 class MediaMetadataTable extends Table {
+  /// Transfer ID (UUID)
   TextColumn get id => text()();
 
-  // Chat message this media belongs to
+  /// Chat message this media belongs to.
   TextColumn get messageId => text().nullable()();
 
-  // Original filename
+  /// Original filename.
   TextColumn get filename => text().nullable()();
 
-  // Local file path
+  /// Absolute local file path.
   TextColumn get localPath => text()();
 
-  // MIME type
+  /// MIME type.
   TextColumn get mimeType => text()();
 
-  // File size
+  /// Total file size in bytes.
   IntColumn get sizeBytes => integer()();
 
-  // SHA-256 checksum
-  TextColumn get checksumSha256 => text()();
+  /// SHA-256 checksum. Unknown until transfer completes.
+  TextColumn get checksumSha256 => text().nullable()();
 
-  // pending / sending / receiving / completed / failed / cancelled
+  /// pending / sending / receiving / completed / failed / cancelled
   TextColumn get transferState => text()();
 
-  // 0.0 - 1.0
+  /// 0.0 → 1.0
   RealColumn get transferProgress =>
-      real().withDefault(const Constant(0))();
+      real().withDefault(const Constant(0));
 
-  // Progress tracking
-  IntColumn get transferredBytes =>
+  /// Bytes transferred so far.
+  IntColumn get bytesTransferred =>
       integer().withDefault(const Constant(0))();
 
-  IntColumn get transferredChunks =>
+  /// Chunks transferred so far.
+  IntColumn get chunksTransferred =>
       integer().withDefault(const Constant(0))();
 
+  /// Total number of chunks.
   IntColumn get totalChunks =>
       integer().withDefault(const Constant(0))();
 
+  /// Original quality flag.
   BoolColumn get isOriginalQuality =>
       boolean().withDefault(const Constant(true))();
 
+  /// Image / video width.
   IntColumn get widthPx => integer().nullable()();
 
+  /// Image / video height.
   IntColumn get heightPx => integer().nullable()();
 
+  /// Audio / video duration.
   IntColumn get durationMs => integer().nullable()();
 
   @override
