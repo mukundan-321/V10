@@ -42,16 +42,49 @@ class Messages extends Table {
 @DataClassName('MediaMetadataRow')
 class MediaMetadataTable extends Table {
   TextColumn get id => text()();
-  TextColumn get localPath => text()(); // never leaves the device
+
+  // Chat message this media belongs to
+  TextColumn get messageId => text().nullable()();
+
+  // Original filename
+  TextColumn get filename => text().nullable()();
+
+  // Local file path
+  TextColumn get localPath => text()();
+
+  // MIME type
   TextColumn get mimeType => text()();
+
+  // File size
   IntColumn get sizeBytes => integer()();
+
+  // SHA-256 checksum
   TextColumn get checksumSha256 => text()();
-  TextColumn get transferState => text()(); // pending/active/paused/done/failed
-  RealColumn get transferProgress => real().withDefault(const Constant(0))();
+
+  // pending / sending / receiving / completed / failed / cancelled
+  TextColumn get transferState => text()();
+
+  // 0.0 - 1.0
+  RealColumn get transferProgress =>
+      real().withDefault(const Constant(0))();
+
+  // Progress tracking
+  IntColumn get transferredBytes =>
+      integer().withDefault(const Constant(0))();
+
+  IntColumn get transferredChunks =>
+      integer().withDefault(const Constant(0))();
+
+  IntColumn get totalChunks =>
+      integer().withDefault(const Constant(0))();
+
   BoolColumn get isOriginalQuality =>
       boolean().withDefault(const Constant(true))();
+
   IntColumn get widthPx => integer().nullable()();
+
   IntColumn get heightPx => integer().nullable()();
+
   IntColumn get durationMs => integer().nullable()();
 
   @override
