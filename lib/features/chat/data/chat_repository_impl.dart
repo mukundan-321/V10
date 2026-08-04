@@ -28,10 +28,10 @@ const _peerDeviceIdPlaceholder = 'peer';
 class ChatRepositoryImpl implements ChatRepository {
   final AppDatabase db;
   final PairingRepository pairingRepository;
-final MediaRepository mediaRepository;
-final AppMediaFileStorage storage;
+  final MediaSessionManager mediaSession;
+  final AppMediaFileStorage storage;
 
-late final ChatMediaCoordinator _media;
+  ChatMediaCoordinator? _media;
   final _uuid = const Uuid();
 
   StreamSubscription<bool>? _connectionSub;
