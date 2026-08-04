@@ -206,11 +206,27 @@ Future<Result<String>> sendImage({
   required int height,
 }) async {
   try {
-    final id = await _media.sendImage(
+    final repository = mediaSession.repository;
+
+    if (repository == null) {
+      return const Err(
+        UnknownFailure("Media session not ready."),
+      );
+    }
+
+    final media = ChatMediaCoordinator(
+      mediaRepository: repository,
+      storage: storage,
+      createPendingMessage: _insertPendingMediaMessage,
+      updateMessageMedia: _updateMessageMedia,
+    );
+
+    final id = await media.sendImage(
       file: file,
       width: width,
       height: height,
     );
+
     return Ok(id);
   } catch (e) {
     return Err(LocalStorageFailure(e.toString()));
@@ -226,13 +242,29 @@ Future<Result<String>> sendVideo({
   File? thumbnail,
 }) async {
   try {
-    final id = await _media.sendVideo(
+    final repository = mediaSession.repository;
+
+    if (repository == null) {
+      return const Err(
+        UnknownFailure("Media session not ready."),
+      );
+    }
+
+    final media = ChatMediaCoordinator(
+      mediaRepository: repository,
+      storage: storage,
+      createPendingMessage: _insertPendingMediaMessage,
+      updateMessageMedia: _updateMessageMedia,
+    );
+
+    final id = await media.sendVideo(
       file: file,
       width: width,
       height: height,
       durationMs: durationMs,
       thumbnail: thumbnail,
     );
+
     return Ok(id);
   } catch (e) {
     return Err(LocalStorageFailure(e.toString()));
@@ -245,10 +277,26 @@ Future<Result<String>> sendDocument({
   required String filename,
 }) async {
   try {
-    final id = await _media.sendDocument(
+    final repository = mediaSession.repository;
+
+    if (repository == null) {
+      return const Err(
+        UnknownFailure("Media session not ready."),
+      );
+    }
+
+    final media = ChatMediaCoordinator(
+      mediaRepository: repository,
+      storage: storage,
+      createPendingMessage: _insertPendingMediaMessage,
+      updateMessageMedia: _updateMessageMedia,
+    );
+
+    final id = await media.sendDocument(
       file: file,
       filename: filename,
     );
+
     return Ok(id);
   } catch (e) {
     return Err(LocalStorageFailure(e.toString()));
@@ -261,10 +309,26 @@ Future<Result<String>> sendVoiceMessage({
   required int durationMs,
 }) async {
   try {
-    final id = await _media.sendVoiceMessage(
+    final repository = mediaSession.repository;
+
+    if (repository == null) {
+      return const Err(
+        UnknownFailure("Media session not ready."),
+      );
+    }
+
+    final media = ChatMediaCoordinator(
+      mediaRepository: repository,
+      storage: storage,
+      createPendingMessage: _insertPendingMediaMessage,
+      updateMessageMedia: _updateMessageMedia,
+    );
+
+    final id = await media.sendVoiceMessage(
       file: file,
       durationMs: durationMs,
     );
+
     return Ok(id);
   } catch (e) {
     return Err(LocalStorageFailure(e.toString()));
