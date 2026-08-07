@@ -13,18 +13,19 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import '../../../core/media/media_channel.dart';
 
 class RtcMediaDataChannel implements MediaDataChannel {
-  RtcMediaDataChannel(this._channel) {
-    _channel.onMessage = (RTCDataChannelMessage message) {
-      if (message.isBinary && !_incomingController.isClosed) {
-        _incomingController.add(message.binary);
+  RtcMediaDataChannel(this._channel, Stream<Uint8List> rawIncoming) {
+    _rawSub = rawIncoming.listen((bytes) {
+      if (!_incomingController.isClosed) {
+        _incomingController.add(bytes);
       }
-    };
+    });
     _channel.onBufferedAmountLow = (_) {
       if (!_lowController.isClosed) _lowController.add(null);
     };
   }
 
   final RTCDataChannel _channel;
+  StreamSubscription<Uint8List>? _rawSub;
   final StreamController<void> _lowController =
       StreamController<void>.broadcast();
   final StreamController<Uint8List> _incomingController =
@@ -56,6 +57,7 @@ class RtcMediaDataChannel implements MediaDataChannel {
   /// close the underlying `RTCDataChannel` itself — that stays owned by
   /// whatever set up the WebRTC connection.
   Future<void> dispose() async {
+    await _rawSub?.cancel();
     await _lowController.close();
     await _incomingController.close();
   }

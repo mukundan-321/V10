@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
@@ -8,12 +9,11 @@ import 'package:two_person_app/core/database/app_database.dart';
 import 'package:two_person_app/core/error/failures.dart';
 import 'package:two_person_app/core/utils/result.dart';
 import 'package:two_person_app/features/chat/domain/entities/message.dart';
-import 'dart:io';
-
 import 'package:two_person_app/features/chat/domain/chat_message_media.dart';
 import 'package:two_person_app/features/chat/data/chat_media_coordinator.dart';
-import 'package:two_person_app/features/chat/data/media_repository.dart';
-import 'package:two_person_app/features/chat/data/media_file_storage.dart';
+import 'package:two_person_app/features/media/data/media_repository.dart';
+import 'package:two_person_app/features/media/data/media_file_storage.dart';
+import 'package:two_person_app/features/chat/data/media_session_manager.dart';
 import 'package:two_person_app/features/chat/domain/repositories/chat_repository.dart';
 import 'package:two_person_app/features/pairing/domain/repositories/pairing_repository.dart';
 
@@ -38,23 +38,11 @@ class ChatRepositoryImpl implements ChatRepository {
   StreamSubscription<List<int>>? _incomingSub;
 
   ChatRepositoryImpl({
-  required this.db,
-  required this.pairingRepository,
-  required this.mediaSession,
-  required this.storage,
-});
-
-void attachMediaRepository(MediaRepository repository) {
-  _media?.dispose();
-
-  _media = ChatMediaCoordinator(
-    mediaRepository: repository,
-    storage: storage,
-    createPendingMessage: _insertPendingMediaMessage,
-    updateMessageMedia: _updateMessageMedia,
-  );
-}
-
+    required this.db,
+    required this.pairingRepository,
+    required this.mediaSession,
+    required this.storage,
+  }) {
     _connectionSub = pairingRepository.connectionStatus.listen((connected) {
       _incomingSub?.cancel();
       final transport = pairingRepository.transport;
@@ -64,11 +52,28 @@ void attachMediaRepository(MediaRepository repository) {
     });
   }
 
+  void attachMediaRepository(MediaRepository repository) {
+    _media?.dispose();
+
+    _media = ChatMediaCoordinator(
+      mediaRepository: repository,
+      storage: storage,
+      createPendingMessage: _insertPendingMediaMessage,
+      updateMessageMedia: _updateMessageMedia,
+    );
+  }
+
+  void detachMediaRepository() {
+    _media?.dispose();
+    _media = null;
+  }
+
   Future<void> dispose() async {
-  _connectionSub?.cancel();
-  _incomingSub?.cancel();
-  await _media.dispose();
-}
+    _connectionSub?.cancel();
+    _incomingSub?.cancel();
+    await _media?.dispose();
+    _media = null;
+  }
 
   Future<void> _handleIncomingFrame(List<int> bytes) async {
     try {
@@ -87,10 +92,6 @@ void attachMediaRepository(MediaRepository repository) {
               );
           break;
         case 'edit':
-          // Only the message's original sender may edit it — without
-          // this check, the peer could send an 'edit' frame for a
-          // message ID the *local* user wrote, and this would have
-          // silently rewritten it.
           await (db.update(db.messages)
                 ..where((t) =>
                     t.id.equals(map['id'] as String) &
@@ -102,8 +103,6 @@ void attachMediaRepository(MediaRepository repository) {
           ));
           break;
         case 'delete_for_both':
-          // Same authorization check as 'edit' above — the peer can
-          // only delete-for-both messages they themselves sent.
           await (db.update(db.messages)
                 ..where((t) =>
                     t.id.equals(map['id'] as String) &
@@ -125,9 +124,7 @@ void attachMediaRepository(MediaRepository repository) {
           break;
       }
     } catch (_) {
-      // Malformed frame from the peer — drop it. The AEAD layer below
-      // this already guarantees authenticity; this only guards against
-      // an authenticated-but-unparseable application-level message.
+      // Malformed frame from the peer — drop it.
     }
   }
 
@@ -141,35 +138,44 @@ void attachMediaRepository(MediaRepository repository) {
       return false;
     }
   }
-Future<void> _insertPendingMediaMessage({
-  required String messageId,
-  required MediaAttachment media,
-  required bool isOutgoing,
-}) async {
-  await db.into(db.messages).insert(
-    MessagesCompanion.insert(
-      id: messageId,
-      senderDeviceId: isOutgoing
-          ? _localDeviceIdPlaceholder
-          : _peerDeviceIdPlaceholder,
-      content: const Value(null),
-      sentAt: DateTime.now(),
-      mediaMetadataId: Value(media.transferId),
-    ),
-  );
-}
 
-Future<void> _updateMessageMedia({
-  required String messageId,
-  required MediaTransferStatus status,
-  required int bytesTransferred,
-  String? localPath,
-  String? errorMessage,
-}) async {
-  // TODO:
-  // When the MediaMetadata table is extended, update the media row here.
-  // For now we only keep the chat message alive while transfers run.
-}
+  Future<void> _insertPendingMediaMessage({
+    required String messageId,
+    required MediaAttachment media,
+    required bool isOutgoing,
+  }) async {
+    await db.into(db.messages).insert(
+      MessagesCompanion.insert(
+        id: messageId,
+        senderDeviceId: isOutgoing
+            ? _localDeviceIdPlaceholder
+            : _peerDeviceIdPlaceholder,
+        content: const Value(null),
+        sentAt: DateTime.now(),
+        mediaMetadataId: Value(media.transferId),
+      ),
+      mode: InsertMode.insertOrIgnore,
+    );
+  }
+
+  Future<void> _updateMessageMedia({
+    required String messageId,
+    required MediaTransferStatus status,
+    required int bytesTransferred,
+    String? localPath,
+    String? errorMessage,
+  }) async {
+    final messageRow = await (db.select(db.messages)..where((t) => t.id.equals(messageId))).getSingleOrNull();
+    if (messageRow != null && messageRow.mediaMetadataId != null) {
+      await (db.update(db.mediaMetadataTable)..where((t) => t.id.equals(messageRow.mediaMetadataId!))).write(
+        MediaMetadataTableCompanion(
+          transferredBytes: Value(bytesTransferred),
+          transferState: Value(status.name),
+          localPath: localPath != null ? Value(localPath) : const Value.absent(),
+        ),
+      );
+    }
+  }
 
   @override
   Future<Result<ChatMessage>> sendMessage({
@@ -211,105 +217,107 @@ Future<void> _updateMessageMedia({
       return Err(LocalStorageFailure(e.toString()));
     }
   }
-@override
-Future<Result<String>> sendImage({
-  required File file,
-  required int width,
-  required int height,
-}) async {
-  try {
-    if (_media == null) {
-      return const Err(
-        UnknownFailure("Media session not ready."),
+
+  @override
+  Future<Result<String>> sendImage({
+    required File file,
+    required int width,
+    required int height,
+  }) async {
+    try {
+      if (_media == null) {
+        return const Err(
+          UnknownFailure("Media session not ready."),
+        );
+      }
+
+      final id = await _media!.sendImage(
+        file: file,
+        width: width,
+        height: height,
       );
+
+      return Ok(id);
+    } catch (e) {
+      return Err(LocalStorageFailure(e.toString()));
     }
-
-    final id = await _media!.sendImage(
-      file: file,
-      width: width,
-      height: height,
-    );
-
-    return Ok(id);
-  } catch (e) {
-    return Err(LocalStorageFailure(e.toString()));
   }
-}
 
-@override
-Future<Result<String>> sendVideo({
-  required File file,
-  required int width,
-  required int height,
-  required int durationMs,
-  File? thumbnail,
-}) async {
-  try {
-    if (_media == null) {
-      return const Err(
-        UnknownFailure("Media session not ready."),
+  @override
+  Future<Result<String>> sendVideo({
+    required File file,
+    required int width,
+    required int height,
+    required int durationMs,
+    File? thumbnail,
+  }) async {
+    try {
+      if (_media == null) {
+        return const Err(
+          UnknownFailure("Media session not ready."),
+        );
+      }
+
+      final id = await _media!.sendVideo(
+        file: file,
+        width: width,
+        height: height,
+        durationMs: durationMs,
+        thumbnail: thumbnail,
       );
+
+      return Ok(id);
+    } catch (e) {
+      return Err(LocalStorageFailure(e.toString()));
     }
-
-    final id = await _media!.sendVideo(
-      file: file,
-      width: width,
-      height: height,
-      durationMs: durationMs,
-      thumbnail: thumbnail,
-    );
-
-    return Ok(id);
-  } catch (e) {
-    return Err(LocalStorageFailure(e.toString()));
   }
-}
 
-@override
-Future<Result<String>> sendDocument({
-  required File file,
-  required String filename,
-}) async {
-  try {
-    if (_media == null) {
-      return const Err(
-        UnknownFailure("Media session not ready."),
+  @override
+  Future<Result<String>> sendDocument({
+    required File file,
+    required String filename,
+  }) async {
+    try {
+      if (_media == null) {
+        return const Err(
+          UnknownFailure("Media session not ready."),
+        );
+      }
+
+      final id = await _media!.sendDocument(
+        file: file,
+        filename: filename,
       );
+
+      return Ok(id);
+    } catch (e) {
+      return Err(LocalStorageFailure(e.toString()));
     }
-
-    final id = await _media!.sendDocument(
-      file: file,
-      filename: filename,
-    );
-
-    return Ok(id);
-  } catch (e) {
-    return Err(LocalStorageFailure(e.toString()));
   }
-}
 
-@override
-Future<Result<String>> sendVoiceMessage({
-  required File file,
-  required int durationMs,
-}) async {
-  try {
-    if (_media == null) {
-      return const Err(
-        UnknownFailure("Media session not ready."),
+  @override
+  Future<Result<String>> sendVoiceMessage({
+    required File file,
+    required int durationMs,
+  }) async {
+    try {
+      if (_media == null) {
+        return const Err(
+          UnknownFailure("Media session not ready."),
+        );
+      }
+
+      final id = await _media!.sendVoiceMessage(
+        file: file,
+        durationMs: durationMs,
       );
+
+      return Ok(id);
+    } catch (e) {
+      return Err(LocalStorageFailure(e.toString()));
     }
-
-    final id = await _media!.sendVoiceMessage(
-      file: file,
-      durationMs: durationMs,
-    );
-
-    return Ok(id);
-  } catch (e) {
-    return Err(LocalStorageFailure(e.toString()));
   }
-}
+
   @override
   Future<Result<void>> editMessage(String messageId, String newContent) async {
     final rows = await (db.update(db.messages)
@@ -335,10 +343,6 @@ Future<Result<String>> sendVoiceMessage({
 
   @override
   Future<Result<void>> deleteForBoth(String messageId) async {
-    // Unlike sendMessage, this genuinely requires the peer to be
-    // online — there is no queued "delete for both" once they've gone
-    // offline and possibly already read it. That's the deliberate
-    // consequence of no store-and-forward.
     final delivered = await _tryPushOverWire({'type': 'delete_for_both', 'id': messageId});
     if (!delivered) return const Err(PeerOfflineFailure());
 
@@ -383,12 +387,6 @@ Future<Result<String>> sendVoiceMessage({
 
   @override
   Future<List<ChatMessage>> searchMessages(String query) async {
-    // Filtered in Dart rather than via SQL LIKE: a raw `LIKE '%$query%'`
-    // treats literal `%`/`_` characters in the user's search text as
-    // SQL wildcards, silently producing wrong results (e.g. searching
-    // "50% off" would match unrelated text). Message volume for a
-    // two-person chat is small enough that this doesn't need a SQL-side
-    // index-backed search.
     final q = db.select(db.messages)
       ..where((t) => t.isDeletedForMe.equals(false));
     final rows = await q.get();

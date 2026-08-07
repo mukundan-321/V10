@@ -231,6 +231,10 @@ class ChunkedFileReceiver {
 
   Future<void> _handleInit(MediaInitFrame frame) async {
     final transferId = transferIdString(frame.transferId);
+    if (_transfers.containsKey(transferId)) {
+      // Duplicate init frame for an active transfer — ignore safely.
+      return;
+    }
 
     Map<String, dynamic> metadata;
     try {
@@ -348,6 +352,15 @@ class ChunkedFileReceiver {
     if (transfer == null || transfer.cancelled) return;
 
     try {
+      if (frame.chunkIndex < transfer.nextExpectedChunk) {
+        // Duplicate chunk — resend ACK for flow control and return cleanly.
+        unawaited(_channel.send(MediaAckFrame(
+          transferId: frame.transferId,
+          chunkIndex: frame.chunkIndex,
+        ).encode()));
+        return;
+      }
+
       if (frame.chunkIndex != transfer.nextExpectedChunk) {
         throw MediaReceiveException(
           'Out-of-order chunk: expected ${transfer.nextExpectedChunk}, '
