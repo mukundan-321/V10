@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:two_person_app/core/media/app_session_cipher.dart';
 import 'package:two_person_app/features/media/data/chunked_file_receiver.dart';
 import 'package:two_person_app/features/media/data/chunked_file_sender.dart';
 import 'package:two_person_app/features/media/data/media_file_storage.dart';
@@ -45,15 +46,17 @@ class MediaSessionManager {
   void _setupMediaSession() {
     final rawChannel = pairingRepository.rtcDataChannel;
     final connectionMgr = pairingRepository.connectionManager;
-    final cipher = pairingRepository.sessionCipher;
+    final rawCipher = pairingRepository.sessionCipher;
 
-    if (rawChannel == null || cipher == null || connectionMgr == null) {
+    if (rawChannel == null || rawCipher == null || connectionMgr == null) {
       return;
     }
 
     _cleanupCurrentSession();
 
     _dataChannelAdapter = RtcMediaDataChannel(rawChannel, connectionMgr.incomingMessages);
+
+    final cipher = AppSessionCipher(rawCipher);
 
     final sender = ChunkedFileSender(
       channel: _dataChannelAdapter!,
