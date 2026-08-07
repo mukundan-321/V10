@@ -33,6 +33,12 @@ class _UnpairedFakePairingRepository implements PairingRepository {
   Stream<PairingStage> get pairingStage => const Stream.empty();
   @override
   EncryptedChannel? get transport => null;
+  @override
+  dynamic get rtcDataChannel => null;
+  @override
+  dynamic get sessionCipher => null;
+  @override
+  dynamic get connectionManager => null;
 }
 
 void main() {

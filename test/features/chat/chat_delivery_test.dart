@@ -53,6 +53,12 @@ class _ConnectedFakePairingRepository implements PairingRepository {
   Stream<bool> get connectionStatus => Stream.value(true);
   @override
   Stream<PairingStage> get pairingStage => const Stream.empty();
+  @override
+  dynamic get rtcDataChannel => null;
+  @override
+  dynamic get sessionCipher => null;
+  @override
+  dynamic get connectionManager => null;
 }
 
 void main() {

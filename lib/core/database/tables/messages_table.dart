@@ -76,7 +76,7 @@ class MediaMetadataTable extends Table {
 
   /// 0.0 → 1.0
   RealColumn get transferProgress =>
-      real().withDefault(const Constant(0));
+      real().withDefault(const Constant(0.0))();
 
   /// Bytes transferred so far.
   IntColumn get bytesTransferred =>
