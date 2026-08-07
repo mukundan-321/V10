@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import '../chat_message_media.dart';
+import 'package:two_person_app/features/chat/domain/chat_message_media.dart';
 
 class ChatMessage extends Equatable {
   final String id;
