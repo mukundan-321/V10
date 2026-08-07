@@ -21,6 +21,8 @@ import 'package:uuid/uuid.dart';
 import '../../../core/media/media_channel.dart';
 import '../../../core/media/media_transfer_protocol.dart';
 import '../../../core/media/session_cipher.dart';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
 /// Persists transfer/progress state. Backed by the existing `MediaMetadata`
 /// Drift table — implement this against the generated DAO.
