@@ -9,8 +9,8 @@ import 'package:two_person_app/core/database/app_database.dart';
 import 'package:two_person_app/core/error/failures.dart';
 import 'package:two_person_app/core/utils/result.dart';
 import 'package:two_person_app/features/chat/domain/entities/message.dart';
-import 'package:two_person_app/features/chat/domain/chat_message_media.dart';
-import 'package:two_person_app/features/chat/data/chat_media_coordinator.dart';
+import 'package:two_person_app/features/media/domain/chat_message_media.dart';
+import 'package:two_person_app/features/media/data/chat_media_coordinator.dart';
 import 'package:two_person_app/features/media/data/media_repository.dart';
 import 'package:two_person_app/features/media/data/media_file_storage.dart';
 import 'package:two_person_app/features/chat/data/media_session_manager.dart';
@@ -169,7 +169,7 @@ class ChatRepositoryImpl implements ChatRepository {
     if (messageRow != null && messageRow.mediaMetadataId != null) {
       await (db.update(db.mediaMetadataTable)..where((t) => t.id.equals(messageRow.mediaMetadataId!))).write(
         MediaMetadataTableCompanion(
-          transferredBytes: Value(bytesTransferred),
+          bytesTransferred: Value(bytesTransferred),
           transferState: Value(status.name),
           localPath: localPath != null ? Value(localPath) : const Value.absent(),
         ),

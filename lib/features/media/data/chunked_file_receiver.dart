@@ -15,13 +15,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 
 import '../../../core/media/media_channel.dart';
 import '../../../core/media/media_transfer_protocol.dart';
 import '../../../core/media/session_cipher.dart';
-import 'package:crypto/crypto.dart';
-import 'dart:convert';
 
 /// Resolves where an incoming transfer's bytes get written. Backed by the
 /// app's local storage layer (app documents / media directory), so the

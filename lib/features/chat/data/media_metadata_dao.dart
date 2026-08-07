@@ -1,8 +1,8 @@
 import 'package:drift/drift.dart';
 
 import '../../../core/database/app_database.dart';
-import 'chunked_file_receiver.dart';
-import 'media_transfer_progress_store.dart';
+import '../../media/data/chunked_file_receiver.dart';
+import '../../media/data/media_transfer_progress_store.dart';
 
 class MediaMetadataDao
     implements MediaMetadataOutgoingDao, MediaReceiveProgressStore {
@@ -48,16 +48,8 @@ class MediaMetadataDao
           ..where((t) => t.id.equals(transferId)))
         .write(
       MediaMetadataTableCompanion(
-        transferredBytes: Value(bytesSent),
-        transferredChunks: Value(chunksSent),
-        transferProgress: Value(
-          bytesSent == 0
-              ? 0
-              : bytesSent /
-                  (db.mediaMetadataTable.sizeBytes.defaultValue == null
-                      ? bytesSent
-                      : bytesSent),
-        ),
+        bytesTransferred: Value(bytesSent),
+        chunksTransferred: Value(chunksSent),
       ),
     );
   }
@@ -148,8 +140,8 @@ class MediaMetadataDao
           ..where((t) => t.id.equals(transferId)))
         .write(
       MediaMetadataTableCompanion(
-        transferredBytes: Value(bytesReceived),
-        transferredChunks: Value(chunksReceived),
+        bytesTransferred: Value(bytesReceived),
+        chunksTransferred: Value(chunksReceived),
       ),
     );
   }
